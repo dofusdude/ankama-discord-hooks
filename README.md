@@ -41,7 +41,7 @@ You can easily self-host this service, but you should be mindful of the URLs. Al
 ### From source
 ```bash
 cd $GOPATH/src
-mkdir -p github.com/ankama-discord-hooks && cd github.com/ankama-discord-hooks
+mkdir -p github.com/dofusdude && cd github.com/dofusdude
 git clone git@github.com:dofusdude/ankama-discord-hooks.git && cd ankama-discord-hooks
 
 # create a .env file
