@@ -1,0 +1,41 @@
+name: integration
+on: push
+
+jobs:
+  container-job:
+    runs-on: ubuntu-latest
+    container: golang:1.19-bullseye
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: webhooks
+          POSTGRES_DB: webhooks
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Build
+        run: go build -v ./...
+        
+      - name: Setup tests
+        env:
+          POSTGRES_URL: postgres://postgres:webhooks@postgres:5432/webhooks?sslmode=disable
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
+          ./migrate -path migrations -database ${POSTGRES_URL} --verbose up
+
+      - name: Test
+        env:
+          SERVERLESS_SENDER_URL: https://serverless.demo
+          TWITTER_TOKEN: undefined
+          POSTGRES_URL: postgres://postgres:webhooks@postgres:5432/webhooks?sslmode=disable
+        run: |
+          go test -v ./...
