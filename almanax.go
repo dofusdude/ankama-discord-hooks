@@ -703,7 +703,7 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 			discordWebhook.Content = &mentionString
 		}
 		discordWebhook.Username = "Almanax Daily"
-		discordWebhook.AvatarUrl = "https://docs.dofusdu.de/almanax_daily.jpg"
+		discordWebhook.AvatarUrl = "https://discord.dofusdude.com/almanax_daily.jpg"
 		discordWebhook.Embeds = []DiscordEmbed{
 			{
 				Title: &almLocalDate,
