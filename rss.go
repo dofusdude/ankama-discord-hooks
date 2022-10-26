@@ -72,7 +72,7 @@ func shortenAndRenderDescription(description string, maxLength int) (string, err
 
 // fire hook handlers
 
-func HandleTimeRss(socialFeed IFeed, state RssState, _ time.Time, _ time.Duration, repo Repository) ([]RssSend, error) {
+func HandleTimeRss(socialFeed IFeed, state *RssState, _ time.Time, _ time.Duration, repo Repository) ([]RssSend, error) {
 	fp := gofeed.NewParser()
 	var rssSends []RssSend
 	rssFeed, err := fp.ParseURL(socialFeed.GetRSSUrl())
@@ -187,5 +187,5 @@ func ListenRss(ctx context.Context, feed IFeed) {
 	var state RssState
 	state.LastHash = 0
 
-	Listen(ctx, RssPollingRate, feed, state, HandleTimeRss, BuildDiscordHookRss)
+	Listen(ctx, RssPollingRate, feed, &state, HandleTimeRss, BuildDiscordHookRss)
 }
