@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY *.go ./
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /webhooks
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /ankama-discord-hooks
 
 ## Deploy
 FROM gcr.io/distroless/static-debian11
@@ -18,10 +18,10 @@ FROM gcr.io/distroless/static-debian11
 LABEL maintainer="stelzo"
 USER nonroot:nonroot
 
-COPY --from=build --chown=nonroot:nonroot /webhooks /webhooks
+COPY --from=build --chown=nonroot:nonroot /ankama-discord-hooks /ankama-discord-hooks
 
 WORKDIR /
 
 EXPOSE 3000
 
-CMD [ "/webhooks" ]
+CMD [ "/ankama-discord-hooks" ]
