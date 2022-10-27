@@ -20,6 +20,7 @@ type RssState struct {
 type RssSend struct {
 	Item     gofeed.Item
 	Webhooks []IHook
+	Feed     IFeed
 }
 
 type AlmanaxState struct {

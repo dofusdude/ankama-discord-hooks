@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/mitchellh/hashstructure/v2"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
@@ -134,10 +137,23 @@ func HandleTimeRss(socialFeed IFeed, state *RssState, _ time.Time, _ time.Durati
 		rssSends = append(rssSends, RssSend{
 			Item:     item,
 			Webhooks: webhooksToSend,
+			Feed:     socialFeed,
 		})
 	}
 
 	return rssSends, nil
+}
+
+func generateUsernameRss(feed IFeed) string {
+	name := feed.GetFeedName()
+	nameParts := strings.Split(name, "-")
+	if len(nameParts) < 2 {
+		return "Ankama"
+	}
+	caser := cases.Title(language.English)
+	game := caser.String(nameParts[0])
+	newsType := caser.String(nameParts[len(nameParts)-1])
+	return game + " " + newsType
 }
 
 func BuildDiscordHookRss(rssHookBuild RssSend) ([]PreparedHook, error) {
@@ -151,6 +167,8 @@ func BuildDiscordHookRss(rssHookBuild RssSend) ([]PreparedHook, error) {
 			return nil, err
 		}
 
+		discordWebhook.AvatarUrl = "https://discord.dofusdude.com/ankama_rss_logo.jpg"
+		discordWebhook.Username = generateUsernameRss(rssHookBuild.Feed)
 		discordWebhook.Embeds = []DiscordEmbed{
 			{
 				Title: &rssHookBuild.Item.Title,
