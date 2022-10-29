@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var repositoryMutex = sync.Mutex{}
 
 type Repository struct {
 	conn *pgxpool.Pool
@@ -488,7 +491,7 @@ func (r *Repository) UpdateAlmanaxHook(hook AlmanaxHookPut, id uuid.UUID) error 
 				if err != nil {
 					return err
 				}
-				_, err = r.conn.Exec(r.ctx, "insert into almanax_mentions (almanax_webhook_id, almanax_bonus_id, discord_mention_id) values ($1, $2, $3)",
+				_, err = r.conn.Exec(r.ctx, "insert into almanax_mentions (almanax_webhook_id, almanax_bonus_id, discord_mention_id, ping_days_before) values ($1, $2, $3, $4)",
 					id, bonusId, mentionId)
 				if err != nil {
 					return err
@@ -615,7 +618,7 @@ func (r *Repository) GetAlmanaxDiscordMentions(id uuid.UUID) (map[string][]Menti
 	var res = make(map[string][]MentionDTO)
 
 	var rows pgx.Rows
-	rows, err = r.conn.Query(r.ctx, "select almanax_mentions.almanax_bonus_id, dm.discord_id, dm.is_role from almanax_mentions inner join discord_mentions dm on dm.id = almanax_mentions.discord_mention_id where almanax_webhook_id = $1", id)
+	rows, err = r.conn.Query(r.ctx, "select almanax_mentions.almanax_bonus_id, dm.discord_id, dm.is_role, almanax_mentions.ping_days_before from almanax_mentions inner join discord_mentions dm on dm.id = almanax_mentions.discord_mention_id where almanax_webhook_id = $1", id)
 	if err != nil {
 		return res, err
 	}
@@ -625,7 +628,7 @@ func (r *Repository) GetAlmanaxDiscordMentions(id uuid.UUID) (map[string][]Menti
 		var bonusId string
 
 		var mention MentionDTO
-		err = rows.Scan(&bonusId, &mention.DiscordId, &mention.IsRole)
+		err = rows.Scan(&bonusId, &mention.DiscordId, &mention.IsRole, &mention.PingDaysBefore)
 		if err != nil {
 			return res, err
 		}
@@ -677,7 +680,7 @@ func (r *Repository) CreateAlmanaxHook(createHook CreateAlmanaxHook) (uuid.UUID,
 				if err != nil {
 					return id, err
 				}
-				_, err = r.conn.Exec(r.ctx, "insert into almanax_mentions (almanax_webhook_id, almanax_bonus_id, discord_mention_id) values ($1, $2, $3)", id, bonus, discordId)
+				_, err = r.conn.Exec(r.ctx, "insert into almanax_mentions (almanax_webhook_id, almanax_bonus_id, discord_mention_id, ping_days_before) values ($1, $2, $3, $4)", id, bonus, discordId, mention.PingDaysBefore)
 				if err != nil {
 					return id, err
 				}

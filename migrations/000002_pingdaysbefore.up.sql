@@ -1,0 +1,1 @@
+alter table almanax_mentions add ping_days_before int default null;

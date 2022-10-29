@@ -35,10 +35,21 @@ type TwitterSend struct {
 	Webhooks []IHook
 }
 
+type PreparedHook struct {
+	Callback string
+	Body     string
+}
+
+type SendCallbackReturn struct {
+	Callback string
+	Ok       bool
+}
+
 type AlmanaxSend struct {
-	Feed      AlmanaxFeed
-	BuildInfo AlmanaxHookBuildInfo
-	Webhooks  []IHook
+	Feed            AlmanaxFeed
+	BuildInfo       AlmanaxHookBuildInfo
+	Webhooks        []IHook
+	OnlyPreMentions []bool
 }
 
 type ApiUserTweetResult struct {
@@ -501,8 +512,9 @@ type SocialHookCreate struct {
 }
 
 type MentionDTO struct {
-	DiscordId uint64 `json:"discord_id"`
-	IsRole    bool   `json:"is_role"`
+	DiscordId      uint64 `json:"discord_id"`
+	IsRole         bool   `json:"is_role"`
+	PingDaysBefore *int   `json:"ping_days_before"`
 }
 
 type AlmanaxHookPut struct {

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -215,6 +214,12 @@ func handleCreateAlmanax(w http.ResponseWriter, r *http.Request) {
 	requestedMentions := map[string]*Set[uint64]{}
 
 	if createWebhook.Mentions != nil {
+
+		if len(*createWebhook.Mentions) > 150 {
+			http.Error(w, "Too many mentions.", http.StatusBadRequest)
+			return
+		}
+
 		for bonusId, mentions := range *createWebhook.Mentions {
 			if _, ok := requestedBonuses[bonusId]; !ok {
 				requestedBonuses[bonusId] = NewSet[string]()
@@ -236,9 +241,12 @@ func handleCreateAlmanax(w http.ResponseWriter, r *http.Request) {
 					http.Error(w, "Invalid mention id.", http.StatusBadRequest)
 					return
 				}
-				if requestedMentions[bonusId].Has(mention.DiscordId) {
-					http.Error(w, "Duplicate mention id: "+strconv.FormatUint(mention.DiscordId, 10)+".", http.StatusBadRequest)
-					return
+
+				if mention.PingDaysBefore != nil {
+					if *mention.PingDaysBefore < 0 || *mention.PingDaysBefore > 30 {
+						http.Error(w, "PingDaysBefore should be between 0 and 30.", http.StatusBadRequest)
+						return
+					}
 				}
 				requestedMentions[bonusId].Add(mention.DiscordId)
 			}
@@ -520,6 +528,15 @@ func localTimeFormat(lang string, almDateString string, translations map[string]
 	return out, nil
 }
 
+func getFutureAlmData(almData map[string]dodugo.AlmanaxEntry, timezone string, daysAhead int) (dodugo.AlmanaxEntry, error) {
+	location, err := time.LoadLocation(timezone)
+	if err != nil {
+		return dodugo.AlmanaxEntry{}, err
+	}
+	localDate := time.Now().In(location).Add(time.Hour * 24 * time.Duration(daysAhead)).Format("2006-01-02")
+	return almData[localDate], nil
+}
+
 func getLocalAlmData(almData map[string]dodugo.AlmanaxEntry, timezone string) (dodugo.AlmanaxEntry, error) {
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
@@ -592,10 +609,9 @@ func HandleTimeAlmanax(almFeed AlmanaxFeed, state AlmanaxState, tickTime time.Ti
 
 	var dodugoClient = dodugo.NewAPIClient(dodugo.NewConfiguration())
 	ctxRangeFrom := context.WithValue(context.Background(), "range[from]", tickTime.In(parisTz).Add(-24*time.Hour).Format("2006-01-02"))
-	ctxRangeTo := context.WithValue(ctxRangeFrom, "range[size]", 3)
+	ctxRangeTo := context.WithValue(ctxRangeFrom, "range[size]", 31)
 	almRes, _, err := dodugoClient.AlmanaxApi.GetAlmanaxRange(ctxRangeTo, almFeed.Language).Execute()
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
@@ -605,21 +621,34 @@ func HandleTimeAlmanax(almFeed AlmanaxFeed, state AlmanaxState, tickTime time.Ti
 	}
 
 	var sendWebhooks []IHook
+	var onlyPres []bool
 	for _, webhook := range subbedWebhooks {
+		var preMentions map[int][]MentionDTO
+		if webhook.Mentions != nil {
+			preMentions, err = buildPreviewMentions(*webhook.Mentions, almData, *webhook.DailySettings.Timezone)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		if !almHookIsSetToFireNow(webhook, tickTime) {
 			continue
 		}
 
-		localAlmData, err := getLocalAlmData(almData, *webhook.DailySettings.Timezone)
+		var localAlmData dodugo.AlmanaxEntry
+		localAlmData, err = getLocalAlmData(almData, *webhook.DailySettings.Timezone)
 		if err != nil {
 			return nil, err
 		}
 
 		almBonus := localAlmData.GetBonus()
 		almBonusType := almBonus.GetType()
-		if filterAlmanaxBonusWhiteBlacklist(webhook, almBonusType) {
+
+		filterOut := filterAlmanaxBonusWhiteBlacklist(webhook, almBonusType)
+		if filterOut && len(preMentions) == 0 {
 			continue
 		}
+		onlyPres = append(onlyPres, filterOut)
 
 		sendHooksTotal.Inc()
 		sendHooksAlmanax.Inc()
@@ -643,14 +672,44 @@ func HandleTimeAlmanax(almFeed AlmanaxFeed, state AlmanaxState, tickTime time.Ti
 				almData:      almData,
 				translations: translations,
 			},
-			Webhooks: sendWebhooks,
+			Webhooks:        sendWebhooks,
+			OnlyPreMentions: onlyPres,
 		},
 	}, nil
 }
 
+func buildPreviewMentions(hookMentions map[string][]MentionDTO, almData map[string]dodugo.AlmanaxEntry, tz string) (map[int][]MentionDTO, error) {
+	var mentionsAcc map[int][]MentionDTO
+	mentionsAcc = make(map[int][]MentionDTO) // daysAhead => mentions
+	for bonus, mentions := range hookMentions {
+		for _, mention := range mentions {
+			if mention.PingDaysBefore == nil {
+				continue
+			}
+
+			futureAlmData, err := getFutureAlmData(almData, tz, *mention.PingDaysBefore)
+			if err != nil {
+				return nil, err
+			}
+
+			futureBonus := futureAlmData.GetBonus()
+			futureBonusType := futureBonus.GetType()
+			if futureBonusType.GetId() == bonus {
+				if _, ok := mentionsAcc[*mention.PingDaysBefore]; ok {
+					mentionsAcc[*mention.PingDaysBefore] = append(mentionsAcc[*mention.PingDaysBefore], mention)
+				} else {
+					mentionsAcc[*mention.PingDaysBefore] = []MentionDTO{mention}
+				}
+			}
+		}
+	}
+
+	return mentionsAcc, nil
+}
+
 func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 	var res []PreparedHook
-	for _, webhook := range almanaxSend.Webhooks {
+	for webhookIdx, webhook := range almanaxSend.Webhooks {
 		localAlmData, err := getLocalAlmData(almanaxSend.BuildInfo.almData, webhook.GetTimezone())
 		if err != nil {
 			return nil, err
@@ -682,42 +741,149 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 		almBonusType := almBonus.GetType()
 
 		mentionString := ""
+		var beforeMentions []DiscordEmbedField
 		if webhook.GetMentions() != nil {
 			hookMentions := *webhook.GetMentions()
 			if mentions, ok := hookMentions[almBonusType.GetId()]; ok {
-				mentionStrings := Map(mentions, func(mention MentionDTO) string {
+				var mentionStrings []string
+				for _, mention := range mentions {
+					idStr := strconv.FormatUint(mention.DiscordId, 10)
+					found := false
+					for _, alreadyInsertedMention := range mentionStrings {
+						if strings.Contains(alreadyInsertedMention, idStr) {
+							found = true // skip already inserted mentions (when using multiple ones for multiple days in advance)
+							break
+						}
+					}
+					if found {
+						continue
+					}
+
+					if mention.IsRole {
+						mentionStrings = append(mentionStrings, "<@&"+idStr+">")
+					}
+					mentionStrings = append(mentionStrings, "<@"+idStr+">")
+				}
+				mentionString = strings.Join(mentionStrings, " ")
+			}
+
+			var mentionsAcc map[int][]MentionDTO
+			mentionsAcc, err = buildPreviewMentions(hookMentions, almanaxSend.BuildInfo.almData, webhook.GetTimezone())
+
+			for daysBefore, mentions := range mentionsAcc {
+				futureAlmData, err := getFutureAlmData(almanaxSend.BuildInfo.almData, webhook.GetTimezone(), daysBefore)
+				if err != nil {
+					return nil, err
+				}
+
+				futureBonus := futureAlmData.GetBonus()
+				futureBonusType := futureBonus.GetType()
+
+				var mentionStrings []string
+				for _, mention := range mentions {
 					idStr := strconv.FormatUint(mention.DiscordId, 10)
 					if mention.IsRole {
-						return "<@&" + idStr + ">"
+						mentionStrings = append(mentionStrings, "<@&"+idStr+">")
+					} else {
+						mentionStrings = append(mentionStrings, "<@"+idStr+">")
 					}
-					return "<@" + idStr + ">"
+				}
+
+				langCode := almanaxSend.Feed.GetFeedName()[len(almanaxSend.Feed.GetFeedName())-2:] // TODO query db for lang code
+				var almTitle string
+				switch langCode {
+				case "fr":
+					if daysBefore == 1 {
+						almTitle = fmt.Sprintf("%s demain !", futureBonusType.GetName())
+					} else {
+						almTitle = fmt.Sprintf("%s dans %d jours !", futureBonusType.GetName(), daysBefore)
+					}
+				case "es":
+					if daysBefore == 1 {
+						almTitle = fmt.Sprintf("%s mañana!", futureBonusType.GetName())
+					} else {
+						almTitle = fmt.Sprintf("%s en %d días!", futureBonusType.GetName(), daysBefore)
+					}
+				case "de":
+					if daysBefore == 1 {
+						almTitle = fmt.Sprintf("%s morgen!", futureBonusType.GetName())
+					} else {
+						almTitle = fmt.Sprintf("%s in %d Tagen!", futureBonusType.GetName(), daysBefore)
+					}
+				case "it":
+					if daysBefore == 1 {
+						almTitle = fmt.Sprintf("%s domani!", futureBonusType.GetName())
+					} else {
+						almTitle = fmt.Sprintf("%s in %d giorni!", futureBonusType.GetName(), daysBefore)
+					}
+				default:
+					if daysBefore == 1 {
+						almTitle = fmt.Sprintf("%s tomorrow!", futureBonusType.GetName())
+					} else {
+						almTitle = fmt.Sprintf("%s in %d days!", futureBonusType.GetName(), daysBefore)
+					}
+				}
+
+				beforeMentions = append(beforeMentions, DiscordEmbedField{
+					Name:  almTitle,
+					Value: fmt.Sprintf("%s\n%s", strings.Join(mentionStrings, " "), futureBonus.GetDescription()),
 				})
-				mentionString = strings.Join(mentionStrings, " ")
 			}
 		}
 
 		var discordWebhook DiscordWebhook
-		if mentionString == "" {
-			discordWebhook.Content = nil
-		} else {
-			discordWebhook.Content = &mentionString
-		}
 		discordWebhook.Username = "Almanax"
 		discordWebhook.AvatarUrl = "https://discord.dofusdude.com/almanax_daily.jpg"
-		discordWebhook.Embeds = []DiscordEmbed{
-			{
-				Title: &almLocalDate,
-				Color: 16777215,
-				Thumbnail: &DiscordImage{
-					Url: imgBestResolution,
+		if almanaxSend.OnlyPreMentions[webhookIdx] {
+			discordWebhook.Content = nil
+			langCode := almanaxSend.Feed.GetFeedName()[len(almanaxSend.Feed.GetFeedName())-2:] // TODO query db for lang code
+			var previewTranslation string
+			switch langCode {
+			case "fr":
+				previewTranslation = "Remarque"
+			case "es":
+				previewTranslation = "Pista"
+			case "de":
+				previewTranslation = "Hinweis"
+			case "it":
+				previewTranslation = "Suggerimento"
+			default:
+				previewTranslation = "Hint"
+			}
+
+			discordWebhook.Embeds = []DiscordEmbed{
+				{
+					Title:  &previewTranslation,
+					Color:  16777215,
+					Fields: beforeMentions,
 				},
-				Fields: []DiscordEmbedField{
-					{
-						Name:  ":zap: " + almBonusType.GetName(),
-						Value: fmt.Sprintf("%s\n\n:moneybag: %d %s", almBonus.GetDescription(), tribute.GetQuantity(), almItem.GetName()),
+			}
+		} else {
+			if mentionString == "" {
+				discordWebhook.Content = nil
+			} else {
+				discordWebhook.Content = &mentionString
+			}
+
+			discordWebhook.Embeds = []DiscordEmbed{
+				{
+					Title: &almLocalDate,
+					Color: 16777215,
+					Thumbnail: &DiscordImage{
+						Url: imgBestResolution,
+					},
+					Fields: []DiscordEmbedField{
+						{
+							Name:  ":zap: " + almBonusType.GetName(),
+							Value: fmt.Sprintf("%s\n\n:moneybag: %d %s", almBonus.GetDescription(), tribute.GetQuantity(), almItem.GetName()),
+						},
 					},
 				},
-			},
+			}
+
+			if len(beforeMentions) > 0 {
+				discordWebhook.Embeds[0].Fields = append(discordWebhook.Embeds[0].Fields, beforeMentions...)
+			}
 		}
 
 		jsonBody, err := json.Marshal(discordWebhook)

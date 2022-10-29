@@ -344,8 +344,10 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Mentions() {
 						DiscordId: 123,
 						IsRole:    false,
 					},
+				},
+				"rewardbonus": {
 					MentionDTO{
-						DiscordId: 123, // same id
+						DiscordId: 123,
 						IsRole:    true,
 					},
 				},
@@ -353,23 +355,32 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Mentions() {
 			Format: "discord",
 		}).
 		Expect(suite.T()).
-		Status(http.StatusBadRequest).
+		Status(http.StatusCreated).
+		Assert(jsonpath.Chain().
+			Equal("$.mentions.loot[0].discord_id", float64(123)).
+			Equal("$.mentions.loot[0].is_role", false).
+			Equal("$.mentions.rewardbonus[0].discord_id", float64(123)).
+			Equal("$.mentions.rewardbonus[0].is_role", true).
+			End(),
+		).
 		End()
 
+	pingDaysAhead := 5
 	apitest.New().
-		Mocks(suite.almBonusMock, suite.discordCheck[1]).
+		Mocks(suite.almBonusMock, suite.discordCheck[2]).
 		Handler(Router()).
 		Post("/webhooks/almanax").
 		JSON(AlmanaxHookPost{
-			Callback: "https://discord.com/api/webhooks/123/abc1",
+			Callback: "https://discord.com/api/webhooks/123/abc2",
 			Subscriptions: []string{
 				"dofus2_fr",
 			},
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
 					MentionDTO{
-						DiscordId: 123,
-						IsRole:    false,
+						DiscordId:      123,
+						IsRole:         false,
+						PingDaysBefore: &pingDaysAhead,
 					},
 				},
 				"rewardbonus": {
@@ -386,6 +397,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Mentions() {
 		Assert(jsonpath.Chain().
 			Equal("$.mentions.loot[0].discord_id", float64(123)).
 			Equal("$.mentions.loot[0].is_role", false).
+			Equal("$.mentions.loot[0].ping_days_before", float64(pingDaysAhead)).
 			Equal("$.mentions.rewardbonus[0].discord_id", float64(123)).
 			Equal("$.mentions.rewardbonus[0].is_role", true).
 			End(),

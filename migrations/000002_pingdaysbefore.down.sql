@@ -1,0 +1,1 @@
+alter table almanax_mentions drop ping_days_before;
