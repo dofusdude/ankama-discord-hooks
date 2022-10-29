@@ -30,11 +30,6 @@ func isDiscordWebhook(url string) bool {
 	return getDiscordHook.StatusCode == http.StatusOK
 }
 
-type PreparedHook struct {
-	Callback string
-	Body     string
-}
-
 func tick[CustomObj any, Feed IFeed, State any](ctx context.Context, tickTime time.Time, state State,
 	feed Feed,
 	tickRate time.Duration,
@@ -56,28 +51,31 @@ func tick[CustomObj any, Feed IFeed, State any](ctx context.Context, tickTime ti
 		return nil
 	}
 
-	var failedUrls []chan string
+	callbackReturns := make(chan SendCallbackReturn)
+	defer close(callbackReturns)
 	for _, webhook := range topicSends {
-		failedUrls = append(failedUrls, make(chan string))
-		go func(topicHooks CustomObj, res chan string) {
+		go func(topicHooks CustomObj, res chan SendCallbackReturn) {
 			var preparedHooks []PreparedHook
 			preparedHooks, err = buildDiscordWebhook(topicHooks)
 			if err != nil {
 				log.Println("Error while buildDiscordWebhook in feed ", feed.GetFeedName(), err)
-				res <- "ok" // TODO handle more verbose
+				res <- SendCallbackReturn{
+					Callback: "",
+					Ok:       true,
+				} // TODO handle more verbose
 				return
 			}
 
-			var callbackReturns []chan string
 			for _, preparedHook := range preparedHooks {
-				channel := make(chan string)
-				callbackReturns = append(callbackReturns, channel)
-				go func(preparedHook PreparedHook, channel chan string) {
+				go func(preparedHook PreparedHook, channel chan SendCallbackReturn) {
 					var resp *http.Response
 					resp, err = http.Post(preparedHook.Callback, "application/json", bytes.NewBuffer([]byte(preparedHook.Body)))
 					if err != nil {
 						log.Println("error posting callback ", err)
-						channel <- preparedHook.Callback
+						channel <- SendCallbackReturn{
+							Callback: preparedHook.Callback,
+							Ok:       false,
+						}
 						return
 					}
 
@@ -88,33 +86,42 @@ func tick[CustomObj any, Feed IFeed, State any](ctx context.Context, tickTime ti
 					}(resp.Body)
 
 					if resp.StatusCode == http.StatusNotFound {
-						log.Println("returned not found for ", preparedHook.Callback)
-						channel <- preparedHook.Callback
+						channel <- SendCallbackReturn{
+							Callback: preparedHook.Callback,
+							Ok:       false,
+						}
 						return
 					}
 
 					if resp.StatusCode != http.StatusNoContent {
-						log.Println("strange return from discord hook ", resp.StatusCode)
-						channel <- "ok" + preparedHook.Callback
-						return
+						log.Println("strange return from discord ", resp.StatusCode)
 					}
-				}(preparedHook, callbackReturns[len(callbackReturns)-1])
+
+					channel <- SendCallbackReturn{
+						Callback: preparedHook.Callback,
+						Ok:       true,
+					}
+				}(preparedHook, callbackReturns)
 			}
-		}(webhook, failedUrls[len(failedUrls)-1])
+		}(webhook, callbackReturns)
 	}
 
-	for _, failedCallback := range failedUrls {
-		callback := <-failedCallback
-		if strings.HasPrefix(callback, "ok") {
-			if callback != "ok" {
-				if err = repo.FireStampWebhook(callback[2:]); err != nil {
-					log.Println("could not stamp webhook ", callback[2:], err)
+	for range topicSends {
+		callback := <-callbackReturns
+		if callback.Ok {
+			if callback.Callback != "" {
+				repositoryMutex.Lock()
+				if err = repo.FireStampWebhook(callback.Callback); err != nil {
+					log.Println("could not stamp webhook ", callback.Callback, err)
 				}
+				repositoryMutex.Unlock()
 			}
 		} else {
-			if err = repo.DeleteHooksByCallback(callback); err != nil {
+			repositoryMutex.Lock()
+			if err = repo.DeleteHooksByCallback(callback.Callback); err != nil {
 				log.Println("error deleting webhook ", err)
 			}
+			repositoryMutex.Unlock()
 		}
 	}
 
