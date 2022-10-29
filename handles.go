@@ -134,7 +134,6 @@ func Listen[CustomObj any, Feed IFeed, State any](ctx context.Context, tickRate 
 		case tickTime := <-ticker.C:
 			if err := tick(ctx, tickTime, state, feed, tickRate, handleTime, buildDiscordWebhook); err != nil {
 				log.Println("Error in tick ", err)
-				continue
 			}
 		case <-ctx.Done():
 			ticker.Stop()
