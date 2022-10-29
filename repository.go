@@ -492,7 +492,7 @@ func (r *Repository) UpdateAlmanaxHook(hook AlmanaxHookPut, id uuid.UUID) error 
 					return err
 				}
 				_, err = r.conn.Exec(r.ctx, "insert into almanax_mentions (almanax_webhook_id, almanax_bonus_id, discord_mention_id, ping_days_before) values ($1, $2, $3, $4)",
-					id, bonusId, mentionId)
+					id, bonusId, mentionId, mention.PingDaysBefore)
 				if err != nil {
 					return err
 				}
