@@ -243,8 +243,8 @@ func handleCreateAlmanax(w http.ResponseWriter, r *http.Request) {
 				}
 
 				if mention.PingDaysBefore != nil {
-					if *mention.PingDaysBefore < 0 || *mention.PingDaysBefore > 30 {
-						http.Error(w, "PingDaysBefore should be between 0 and 30.", http.StatusBadRequest)
+					if *mention.PingDaysBefore < 1 || *mention.PingDaysBefore > 30 {
+						http.Error(w, "PingDaysBefore should be between 1 and 30.", http.StatusBadRequest)
 						return
 					}
 				}
