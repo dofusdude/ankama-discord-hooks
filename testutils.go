@@ -9,7 +9,11 @@ import (
 
 func testutilGetlastinsertedwebhookid() (uuid.UUID, error) {
 	ctx := context.Background()
-	conn, err := pgxpool.New(ctx, PostgresUrl)
+	var err error
+	var conn *pgxpool.Pool
+	if conn, err = pgxpool.New(ctx, PostgresUrl); err != nil {
+		return uuid.Nil, err
+	}
 	defer conn.Close()
 	var id uuid.UUID
 	var createdAt time.Time
@@ -20,7 +24,10 @@ func testutilGetlastinsertedwebhookid() (uuid.UUID, error) {
 func testutilCleartables() error {
 	var err error
 	ctx := context.Background()
-	conn, err := pgxpool.New(ctx, PostgresUrl)
+	var conn *pgxpool.Pool
+	if conn, err = pgxpool.New(ctx, PostgresUrl); err != nil {
+		return err
+	}
 	defer conn.Close()
 
 	_, err = conn.Exec(ctx, "delete from almanax_mentions")

@@ -57,7 +57,7 @@ func handleDeleteAlmanaxHook(w http.ResponseWriter, r *http.Request) {
 	requestsCRUDTotal.Inc()
 	requestsCRUDAlmanax.Inc()
 	id := r.Context().Value("id").(string)
-	var err error = nil
+	var err error
 
 	var parsedId uuid.UUID
 	parsedId, err = uuid.Parse(id)
@@ -142,7 +142,7 @@ func validateWeekday(weekday string) (string, bool) {
 func handleCreateAlmanax(w http.ResponseWriter, r *http.Request) {
 	requestsCRUDTotal.Inc()
 	requestsCRUDAlmanax.Inc()
-	var err error = nil
+	var err error
 	var createWebhook AlmanaxHookPost
 	if err = json.NewDecoder(r.Body).Decode(&createWebhook); err != nil {
 		http.Error(w, "Invalid request.", http.StatusBadRequest)
@@ -350,7 +350,7 @@ func handleCreateAlmanax(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAlm(parsedId uuid.UUID, repo Repository) (AlmanaxWebhook, error) {
-	var err error = nil
+	var err error
 	var hasWebhook bool
 	hasWebhook, err = repo.HasAlmanaxWebhook(parsedId)
 	if err != nil {
@@ -382,7 +382,7 @@ func handleGetAlmanax(w http.ResponseWriter, r *http.Request) {
 	requestsCRUDTotal.Inc()
 	requestsCRUDAlmanax.Inc()
 	id := r.Context().Value("id").(string)
-	var err error = nil
+	var err error
 
 	var parsedId uuid.UUID
 	parsedId, err = uuid.Parse(id)

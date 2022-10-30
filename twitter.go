@@ -39,6 +39,7 @@ func handleCreateTwitterHook(w http.ResponseWriter, r *http.Request) {
 // utils for filter and fire hooks
 
 func getLatestTweets(userId uint64, lastCheck time.Time, baseUrl string) ([]Tweet, error) {
+	var err error
 	if userId == 0 {
 		return []Tweet{}, fmt.Errorf("invalid user id")
 	}
@@ -48,7 +49,10 @@ func getLatestTweets(userId uint64, lastCheck time.Time, baseUrl string) ([]Twee
 	url := fmt.Sprintf("%s/2/users/%d/tweets", baseUrl, userId)
 
 	// Create a new request using http
-	req, err := http.NewRequest("GET", url, nil)
+	var req *http.Request
+	if req, err = http.NewRequest("GET", url, nil); err != nil {
+		return nil, err
+	}
 
 	// add authorization header to the req
 	req.Header.Add("Authorization", bearer)

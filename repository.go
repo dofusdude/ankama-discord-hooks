@@ -184,7 +184,7 @@ func (r *Repository) HasSocialWebhook(socialType string, id uuid.UUID) (bool, er
 	case RSSWebhookType:
 		err = r.conn.QueryRow(r.ctx, "select exists(select 1 from rss_webhooks inner join webhooks w on w.id = rss_webhooks.id where rss_webhooks.id = $1 and w.deleted_at is null)", id).Scan(&exists)
 	default:
-		err = errors.New("invalid social type")
+		return false, errors.New("invalid social type")
 	}
 	return exists, err
 }
@@ -225,7 +225,7 @@ func (r *Repository) HasGetSocialFeeds(socialType string, feedIdentifiers []stri
 			}
 			ids = append(ids, id)
 		default:
-			err = errors.New("invalid social type")
+			return false, nil, errors.New("invalid social type")
 		}
 	}
 
@@ -309,7 +309,7 @@ func (r *Repository) GetSocialHookSubscriptions(socialType string, id uuid.UUID)
 			}
 			subs = append(subs, &sub)
 		default:
-			err = errors.New("invalid social type")
+			return nil, errors.New("invalid social type")
 		}
 	}
 
@@ -370,7 +370,7 @@ func (r *Repository) FindSocialFeedId(socialType string, humanId string) (uint64
 		}
 		err = r.conn.QueryRow(r.ctx, "select rf.id from feeds inner join rss_feeds rf on feeds.id = rf.id where api_readable_id = $1", humanId).Scan(&id)
 	default:
-		err = errors.New("invalid social type")
+		return id, errors.New("invalid social type")
 	}
 	return id, err
 }
@@ -398,7 +398,7 @@ func (r *Repository) CreateSocialHook(socialType string, createHook SocialHookCr
 			return uuid.Nil, err
 		}
 	default:
-		err = errors.New("invalid social type")
+		return uuid.Nil, errors.New("invalid social type")
 	}
 
 	var allFound bool
@@ -585,7 +585,7 @@ func (r *Repository) UpdateSocialHook(socialType string, hook ISocialHookUpdate)
 	case RSSWebhookType:
 		tableName = "rss_webhooks"
 	default:
-		err = errors.New("invalid social type")
+		return errors.New("invalid social type")
 	}
 
 	if hook.GetBlacklist() != nil {
@@ -600,9 +600,11 @@ func (r *Repository) UpdateSocialHook(socialType string, hook ISocialHookUpdate)
 		_, err = r.conn.Exec(r.ctx, "update "+tableName+" set preview_length = $1 where id = $2", hook.GetPreviewLength(), hook.GetId())
 	}
 
-	err = r.setUpdatedHookTimestamp(hook.GetId())
+	if err != nil {
+		return err
+	}
 
-	return err
+	return r.setUpdatedHookTimestamp(hook.GetId())
 }
 
 func (r *Repository) GetSocialHook(socialType string, id uuid.UUID) (ISocialHook, error) {
@@ -710,9 +712,11 @@ func (r *Repository) GetAlmanaxHook(id uuid.UUID) (AlmanaxWebhook, error) {
 	var err error
 
 	var webhook AlmanaxWebhook
-	err = r.conn.QueryRow(r.ctx, "select w.id, w.last_fired_at, w.callback, w.created_at, w.updated_at, w.format, aw.daily_timezone, aw.daily_midnight_offset, aw.wants_iso_date, aw.whitelist, aw.blacklist, aw.intervals, aw.weekly_weekday from almanax_webhooks aw inner join webhooks w on w.id = aw.id where w.id = $1 and w.deleted_at is null", id).
+	if err = r.conn.QueryRow(r.ctx, "select w.id, w.last_fired_at, w.callback, w.created_at, w.updated_at, w.format, aw.daily_timezone, aw.daily_midnight_offset, aw.wants_iso_date, aw.whitelist, aw.blacklist, aw.intervals, aw.weekly_weekday from almanax_webhooks aw inner join webhooks w on w.id = aw.id where w.id = $1 and w.deleted_at is null", id).
 		Scan(&webhook.Id, &webhook.LastFiredAt, &webhook.Callback, &webhook.CreatedAt, &webhook.UpdatedAt, &webhook.Format,
-			&webhook.DailySettings.Timezone, &webhook.DailySettings.MidnightOffset, &webhook.WantsIsoDate, &webhook.BonusWhitelist, &webhook.BonusBlacklist, &webhook.Intervals, &webhook.WeeklyWeekday)
+			&webhook.DailySettings.Timezone, &webhook.DailySettings.MidnightOffset, &webhook.WantsIsoDate, &webhook.BonusWhitelist, &webhook.BonusBlacklist, &webhook.Intervals, &webhook.WeeklyWeekday); err != nil {
+		return AlmanaxWebhook{}, err
+	}
 
 	mentions, err := r.GetAlmanaxDiscordMentions(id)
 	if err != nil {

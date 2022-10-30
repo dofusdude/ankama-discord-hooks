@@ -248,7 +248,7 @@ func handlePutSocial(socialWebhookType string, w http.ResponseWriter, r *http.Re
 }
 
 func handleCreateSocial(socialWebhookType string, w http.ResponseWriter, r *http.Request) {
-	var err error = nil
+	var err error
 	var newSocialWebhook SocialHookCreate
 	if err = json.NewDecoder(r.Body).Decode(&newSocialWebhook); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -343,7 +343,7 @@ func handleCreateSocial(socialWebhookType string, w http.ResponseWriter, r *http
 }
 
 func HandleGenGetMetaSubscriptions[T IFeed](w http.ResponseWriter, r *http.Request, getFeeds func([]uint64, Repository) ([]T, error)) {
-	var err error = nil
+	var err error
 	var repo Repository
 	if err = repo.Init(r.Context()); err != nil {
 		http.Error(w, "Could not connect to internal services.", http.StatusInternalServerError)

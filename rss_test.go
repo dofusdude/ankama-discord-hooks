@@ -140,6 +140,7 @@ func TestFilterByBlackWhitelist(t *testing.T) {
 
 func TestFindImageUrl(t *testing.T) {
 	file, err := os.ReadFile("testdata/fusionNewsItem.xml")
+	assert.NoError(t, err)
 	fp := gofeed.NewParser()
 	rssFeed, err := fp.ParseString(string(file))
 	if err != nil {
@@ -151,6 +152,7 @@ func TestFindImageUrl(t *testing.T) {
 
 func TestShortenAndRenderDescription(t *testing.T) {
 	file, err := os.ReadFile("testdata/fusionNewsItem.xml")
+	assert.NoError(t, err)
 	fp := gofeed.NewParser()
 	rssFeed, err := fp.ParseString(string(file))
 	if err != nil {
