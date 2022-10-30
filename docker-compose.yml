@@ -21,7 +21,9 @@ services:
       - POSTGRES_PASSWORD
       - POSTGRES_DB
     volumes:
-      - ./migrations/000001_init_schema.up.sql:/docker-entrypoint-initdb.d/db.sql
+      - ./migrations/000001_init_schema.up.sql:/docker-entrypoint-initdb.d/1_init_schema.sql
+      - ./migrations/000002_pingdaysbefore.up.sql:/docker-entrypoint-initdb.d/2_pingdaysbefore.sql
+      - ./migrations/000003_almanax_preview.up.sql:/docker-entrypoint-initdb.d/3_almanax_preview.sql
     #    - ./postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
