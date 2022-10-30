@@ -748,9 +748,9 @@ func HandleTimeAlmanax(almFeed AlmanaxFeed, _ any, tickTime time.Time, _ time.Du
 	}
 
 	var dodugoClient = dodugo.NewAPIClient(dodugo.NewConfiguration())
-	ctxRangeFrom := context.WithValue(context.Background(), "range[from]", tickTime.In(parisTz).Add(-24*time.Hour).Format("2006-01-02"))
-	ctxRangeTo := context.WithValue(ctxRangeFrom, "range[size]", 33)
-	almRes, _, err := dodugoClient.AlmanaxApi.GetAlmanaxRange(ctxRangeTo, almFeed.Language).Execute()
+	options := dodugoClient.AlmanaxApi.GetAlmanaxRange(context.Background(), almFeed.Language)
+	options = options.Timezone(parisTz.String()).RangeFrom(tickTime.In(parisTz).Add(-24 * time.Hour).Format("2006-01-02")).RangeSize(33)
+	almRes, _, err := options.Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -1032,7 +1032,7 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 				discordWebhook.Embeds = []DiscordEmbed{
 					{
 						Title:  &previewTranslation,
-						Color:  16777215,
+						Color:  3684408,
 						Fields: beforeMentions,
 					},
 				}
@@ -1046,7 +1046,7 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 				discordWebhook.Embeds = []DiscordEmbed{
 					{
 						Title: &almLocalDate,
-						Color: 16777215,
+						Color: 3684408,
 						Thumbnail: &DiscordImage{
 							Url: imgBestResolution,
 						},
@@ -1120,10 +1120,11 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 			discordWebhook.Embeds = []DiscordEmbed{
 				{
 					Title: &localeWeekSpan,
-					Color: 16777215,
+					Color: 3684408,
 				},
 			}
 
+			currentEmbed := 0
 			itemsAgg := make(map[string]int32)
 			for _, almEntry := range localAlmData {
 				var almLocalDate string
@@ -1138,10 +1139,34 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 				almItem := tribute.GetItem()
 				almBonus := almEntry.GetBonus()
 				almBonusType := almBonus.GetType()
-				discordWebhook.Embeds[0].Fields = append(discordWebhook.Embeds[0].Fields, DiscordEmbedField{
+				discordWebhook.Embeds[currentEmbed].Fields = append(discordWebhook.Embeds[currentEmbed].Fields, DiscordEmbedField{
 					Name:  fmt.Sprintf("%s :zap: %s", almLocalDate, almBonusType.GetName()),
-					Value: fmt.Sprintf("%s\n\n:moneybag: %d %s", almBonus.GetDescription(), tribute.GetQuantity(), almItem.GetName()),
+					Value: fmt.Sprintf("%s\n:moneybag: %d %s", almBonus.GetDescription(), tribute.GetQuantity(), almItem.GetName()),
 				})
+
+				if len(discordWebhook.Embeds[currentEmbed].Fields) == 20 {
+					*discordWebhook.Embeds[currentEmbed].Title = almLocalDateStart + " - " + almLocalDate + " (1/2)"
+					var parsedLastDate time.Time
+					if parsedLastDate, err = time.Parse("2006-01-02", almEntry.GetDate()); err != nil {
+						return nil, err
+					}
+					secondStartTime := parsedLastDate.Add(time.Hour * 24).Format("2006-01-02")
+					var secondStart string
+					if webhook.IsWantIsoDate() {
+						almLocalDateStart = secondStartTime
+					} else {
+						if secondStart, err = localTimeFormat(almanaxSend.Feed.Language, secondStartTime, almanaxSend.BuildInfo.translations); err != nil {
+							return nil, err
+						}
+					}
+
+					localeWeekSpanPart2 := secondStart + " - " + almLocalDateEnd + " (2/2)"
+					discordWebhook.Embeds = append(discordWebhook.Embeds, DiscordEmbed{
+						Title: &localeWeekSpanPart2,
+						Color: 3684408,
+					})
+					currentEmbed++
+				}
 
 				itemsAgg[almItem.GetName()] += tribute.GetQuantity()
 			}
@@ -1165,7 +1190,7 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 				totalItems += fmt.Sprintf("%d %s\n", itemQuantity, itemName)
 			}
 
-			discordWebhook.Embeds[0].Fields = append(discordWebhook.Embeds[0].Fields, DiscordEmbedField{
+			discordWebhook.Embeds[currentEmbed].Fields = append(discordWebhook.Embeds[currentEmbed].Fields, DiscordEmbedField{
 				Name:  totalTranslation,
 				Value: totalItems,
 			})
