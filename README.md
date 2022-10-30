@@ -1,6 +1,7 @@
 # Ankama Discord Webhooks
 [![Report card](https://goreportcard.com/badge/github.com/dofusdude/ankama-discord-hooks)](https://goreportcard.com/report/github.com/dofusdude/ankama-discord-hooks)
 [![integration](https://github.com/dofusdude/ankama-discord-hooks/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/dofusdude/ankama-discord-hooks/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/dofusdude/ankama-discord-hooks/branch/main/graph/badge.svg?token=ADPA003JM7)](https://codecov.io/gh/dofusdude/ankama-discord-hooks)
 
 A polling based listener converting multiple Ankama related feed updates to Discord Webhooks.
 
