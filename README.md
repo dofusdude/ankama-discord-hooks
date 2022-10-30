@@ -1,6 +1,6 @@
 # Ankama Discord Webhooks
 
-A tiny, polling based listener converting multiple Ankama related feed updates to Discord Webhooks.
+A polling based listener converting multiple Ankama related feed updates to Discord Webhooks.
 
 There is also an official [Website](https://discord.dofusdude.com) for very easy and fast Webhook creation using this API.
 
