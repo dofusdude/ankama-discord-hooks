@@ -52,7 +52,6 @@ func tick[CustomObj any, Feed IFeed, State any](ctx context.Context, tickTime ti
 	}
 
 	callbackReturns := make(chan SendCallbackReturn)
-	defer close(callbackReturns)
 	for _, webhook := range topicSends {
 		go func(topicHooks CustomObj, res chan SendCallbackReturn) {
 			var preparedHooks []PreparedHook
