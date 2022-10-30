@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -32,7 +33,8 @@ func TestHourCheck(t *testing.T) {
 	assert.True(t, isNewHour(parsedTime))
 }
 
-func TestFire(t *testing.T) {
+func TestFireDaily(t *testing.T) {
+	var err error
 	testTz := "Europe/Paris"
 	tzOffset := 1
 	testhook1 := AlmanaxWebhook{
@@ -40,13 +42,81 @@ func TestFire(t *testing.T) {
 			Timezone:       &testTz,
 			MidnightOffset: &tzOffset,
 		},
+		Intervals: []string{"daily"},
 	}
 
-	triggerTime := time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC)
-	assert.True(t, almHookIsSetToFireNow(testhook1, triggerTime))
+	var loc *time.Location
+	loc, err = time.LoadLocation(testTz)
+	assert.Nil(t, err)
 
-	triggerTime = time.Date(2021, 1, 1, 23, 0, 0, 0, time.UTC)
-	assert.False(t, almHookIsSetToFireNow(testhook1, triggerTime))
+	triggerTime := time.Date(2021, 1, 2, 1, 0, 0, 0, loc)
+	toFire, err := almHookIsSetToFireNow(testhook1, triggerTime)
+	log.Println(toFire)
+	assert.Nil(t, err)
+	assert.Len(t, toFire, 1)
+
+	triggerTime = time.Date(2021, 1, 1, 23, 0, 0, 0, loc)
+	toFire, err = almHookIsSetToFireNow(testhook1, triggerTime)
+	assert.Nil(t, err)
+	assert.Len(t, toFire, 0)
+}
+
+func TestFireMonthly(t *testing.T) {
+	var err error
+	testTz := "Europe/Paris"
+	tzOffset := 1
+	testhook1 := AlmanaxWebhook{
+		DailySettings: WebhookDailySettings{
+			Timezone:       &testTz,
+			MidnightOffset: &tzOffset,
+		},
+		Intervals: []string{"monthly"},
+	}
+
+	var loc *time.Location
+	loc, err = time.LoadLocation(testTz)
+	assert.Nil(t, err)
+
+	triggerTime := time.Date(2022, time.October, 31, 1, 0, 0, 0, loc)
+	toFire, err := almHookIsSetToFireNow(testhook1, triggerTime)
+	log.Println(toFire)
+	assert.Nil(t, err)
+	assert.Len(t, toFire, 1)
+
+	triggerTime = time.Date(2021, 1, 1, 23, 0, 0, 0, loc)
+	toFire, err = almHookIsSetToFireNow(testhook1, triggerTime)
+	assert.Nil(t, err)
+	assert.Len(t, toFire, 0)
+}
+
+func TestFireWeekly(t *testing.T) {
+	var err error
+	testTz := "Europe/Paris"
+	tzOffset := 1
+	weekday := "monday"
+	testhook1 := AlmanaxWebhook{
+		DailySettings: WebhookDailySettings{
+			Timezone:       &testTz,
+			MidnightOffset: &tzOffset,
+		},
+		Intervals:     []string{"weekly"},
+		WeeklyWeekday: &weekday,
+	}
+
+	var loc *time.Location
+	loc, err = time.LoadLocation(testTz)
+	assert.Nil(t, err)
+
+	triggerTime := time.Date(2022, time.October, 31, 1, 0, 0, 0, loc)
+	toFire, err := almHookIsSetToFireNow(testhook1, triggerTime)
+	log.Println(toFire)
+	assert.Nil(t, err)
+	assert.Len(t, toFire, 1)
+
+	triggerTime = time.Date(2021, 1, 1, 23, 0, 0, 0, loc)
+	toFire, err = almHookIsSetToFireNow(testhook1, triggerTime)
+	assert.Nil(t, err)
+	assert.Len(t, toFire, 0)
 }
 
 type AlmanaxTestSuite struct {
@@ -557,6 +627,122 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_And_Get() {
 			Equal("$.format", "discord").
 			End(),
 		).
+		End()
+}
+
+func (suite *AlmanaxTestSuite) Test_CRUD_Create_Intervals_And_Update() {
+	apitest.New().
+		Mocks(suite.almBonusMock, suite.discordCheck[0]).
+		Handler(Router()).
+		Post("/webhooks/almanax").
+		JSON(AlmanaxHookPost{
+			Callback: "https://discord.com/api/webhooks/123/abc",
+			Subscriptions: []string{
+				"dofus2_fr",
+			},
+			Mentions: &map[string][]MentionDTO{
+				"loot": {
+					MentionDTO{
+						DiscordId: 123,
+						IsRole:    false,
+					},
+					MentionDTO{
+						DiscordId: 124,
+						IsRole:    true,
+					},
+				},
+			},
+			Format: "discord",
+			Intervals: []string{
+				"daily",
+				"weekly",
+			},
+		}).
+		Expect(suite.T()).
+		Status(http.StatusCreated).
+		Assert(jsonpath.Chain().
+			Present("$.id").
+			Contains("$.intervals", "daily").
+			Contains("$.intervals", "weekly").
+			End(),
+		).
+		End()
+
+	uid, err := testutilGetlastinsertedwebhookid()
+	if err != nil {
+		suite.T().Fatal(err)
+	}
+
+	hook, err := suite.db.GetAlmanaxHook(uid)
+	if err != nil {
+		suite.T().Fatal(err)
+	}
+
+	apitest.New().
+		Mocks(suite.almBonusMock).
+		Handler(Router()).
+		Put("/webhooks/almanax/" + uid.String()).
+		JSON(AlmanaxHookPut{
+			Intervals: []string{
+				"monthly",
+			},
+		}).
+		Expect(suite.T()).
+		Status(http.StatusOK).
+		Assert(jsonpath.Chain().
+			Present("$.id").
+			Contains("$.intervals", "monthly").
+			End(),
+		).
+		End()
+
+	hook, err = suite.db.GetAlmanaxHook(uid)
+	if err != nil {
+		suite.T().Fatal(err)
+	}
+
+	suite.Equal([]string{"monthly"}, hook.Intervals)
+
+	apitest.New().
+		Mocks(suite.almBonusMock).
+		Handler(Router()).
+		Put("/webhooks/almanax/" + uid.String()).
+		JSON(AlmanaxHookPut{
+			Intervals: []string{
+				"test",
+			},
+		}).
+		Expect(suite.T()).
+		Status(http.StatusBadRequest).
+		End()
+
+	weekday := "monday"
+	apitest.New().
+		Mocks(suite.almBonusMock).
+		Handler(Router()).
+		Put("/webhooks/almanax/" + uid.String()).
+		JSON(AlmanaxHookPut{
+			WeeklyWeekday: &weekday,
+		}).
+		Expect(suite.T()).
+		Status(http.StatusOK).
+		Assert(jsonpath.Chain().
+			Present("$.id").
+			Equal("$.weekly_weekday", weekday).
+			End(),
+		).
+		End()
+
+	unknownWeekday := "foo"
+	apitest.New().
+		Mocks(suite.almBonusMock).
+		Handler(Router()).
+		Put("/webhooks/almanax/" + uid.String()).
+		JSON(AlmanaxHookPut{
+			WeeklyWeekday: &unknownWeekday,
+		}).
+		Expect(suite.T()).
+		Status(http.StatusBadRequest).
 		End()
 }
 

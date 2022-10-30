@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"github.com/lib/pq"
 	"log"
 	"sync"
 	"time"
@@ -444,6 +445,20 @@ func (r *Repository) UpdateAlmanaxHook(hook AlmanaxHookPut, id uuid.UUID) error 
 		}
 	}
 
+	if hook.Intervals != nil {
+		_, err = r.conn.Exec(r.ctx, "update almanax_webhooks set intervals = $1 where id = $2", pq.Array(hook.Intervals), id)
+		if err != nil {
+			return err
+		}
+	}
+
+	if hook.WeeklyWeekday != nil {
+		_, err = r.conn.Exec(r.ctx, "update almanax_webhooks set weekly_weekday = $1 where id = $2", hook.WeeklyWeekday, id)
+		if err != nil {
+			return err
+		}
+	}
+
 	if hook.DailySettings != nil {
 		if hook.DailySettings.Timezone != nil {
 			_, err = r.conn.Exec(r.ctx, "update almanax_webhooks set daily_timezone = $1 where id = $2", hook.DailySettings.Timezone, id)
@@ -648,8 +663,8 @@ func (r *Repository) CreateAlmanaxHook(createHook CreateAlmanaxHook) (uuid.UUID,
 		return uuid.UUID{}, err
 	}
 
-	_, err = r.conn.Exec(r.ctx, "insert into almanax_webhooks (id, wants_iso_date, daily_midnight_offset, daily_timezone, blacklist, whitelist) values ($1, $2, $3, $4, $5, $6)",
-		id, createHook.WantsIsoDate, createHook.DailySettings.MidnightOffset, createHook.DailySettings.Timezone, createHook.BonusBlacklist, createHook.BonusWhitelist)
+	_, err = r.conn.Exec(r.ctx, "insert into almanax_webhooks (id, wants_iso_date, daily_midnight_offset, daily_timezone, blacklist, whitelist, intervals, weekly_weekday) values ($1, $2, $3, $4, $5, $6, $7, $8)",
+		id, createHook.WantsIsoDate, createHook.DailySettings.MidnightOffset, createHook.DailySettings.Timezone, createHook.BonusBlacklist, createHook.BonusWhitelist, pq.Array(createHook.Intervals), createHook.WeeklyWeekday)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
@@ -695,9 +710,9 @@ func (r *Repository) GetAlmanaxHook(id uuid.UUID) (AlmanaxWebhook, error) {
 	var err error
 
 	var webhook AlmanaxWebhook
-	err = r.conn.QueryRow(r.ctx, "select w.id, w.last_fired_at, w.callback, w.created_at, w.updated_at, w.format, aw.daily_timezone, aw.daily_midnight_offset, aw.wants_iso_date, aw.whitelist, aw.blacklist from almanax_webhooks aw inner join webhooks w on w.id = aw.id where w.id = $1 and w.deleted_at is null", id).
+	err = r.conn.QueryRow(r.ctx, "select w.id, w.last_fired_at, w.callback, w.created_at, w.updated_at, w.format, aw.daily_timezone, aw.daily_midnight_offset, aw.wants_iso_date, aw.whitelist, aw.blacklist, aw.intervals, aw.weekly_weekday from almanax_webhooks aw inner join webhooks w on w.id = aw.id where w.id = $1 and w.deleted_at is null", id).
 		Scan(&webhook.Id, &webhook.LastFiredAt, &webhook.Callback, &webhook.CreatedAt, &webhook.UpdatedAt, &webhook.Format,
-			&webhook.DailySettings.Timezone, &webhook.DailySettings.MidnightOffset, &webhook.WantsIsoDate, &webhook.BonusWhitelist, &webhook.BonusBlacklist)
+			&webhook.DailySettings.Timezone, &webhook.DailySettings.MidnightOffset, &webhook.WantsIsoDate, &webhook.BonusWhitelist, &webhook.BonusBlacklist, &webhook.Intervals, &webhook.WeeklyWeekday)
 
 	mentions, err := r.GetAlmanaxDiscordMentions(id)
 	if err != nil {

@@ -23,9 +23,6 @@ type RssSend struct {
 	Feed     IFeed
 }
 
-type AlmanaxState struct {
-}
-
 type TwitterState struct {
 	LastCheck time.Time
 }
@@ -50,6 +47,8 @@ type AlmanaxSend struct {
 	BuildInfo       AlmanaxHookBuildInfo
 	Webhooks        []IHook
 	OnlyPreMentions []bool
+	IntervalType    []string
+	TickTime        time.Time
 }
 
 type ApiUserTweetResult struct {
@@ -162,6 +161,8 @@ type AlmanaxHookDTO struct {
 	BonusBlacklist []string                 `json:"bonus_blacklist"`
 	Format         string                   `json:"format"`
 	WantsIsoDate   bool                     `json:"iso_date"`
+	Intervals      []string                 `json:"intervals"`
+	WeeklyWeekday  *string                  `json:"weekly_weekday"`
 	Mentions       *map[string][]MentionDTO `json:"mentions"`
 	CreatedAt      time.Time                `json:"created_at"`
 	UpdatedAt      time.Time                `json:"updated_at"`
@@ -176,6 +177,8 @@ type AlmanaxHookPost struct {
 	WantsIsoDate   *bool                    `json:"iso_date"`
 	Format         string                   `json:"format"`
 	Mentions       *map[string][]MentionDTO `json:"mentions"`
+	Intervals      []string                 `json:"intervals"`
+	WeeklyWeekday  *string                  `json:"weekly_weekday"`
 }
 
 type AlmanaxHookBuildInfo struct {
@@ -322,6 +325,8 @@ type AlmanaxWebhook struct {
 	Format         string
 	WantsIsoDate   bool
 	Mentions       *map[string][]MentionDTO
+	Intervals      []string
+	WeeklyWeekday  *string
 	LastFiredAt    *time.Time
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
@@ -524,6 +529,8 @@ type AlmanaxHookPut struct {
 	Subscriptions  []string                 `json:"subscriptions"`
 	WantsIsoDate   *bool                    `json:"iso_date"`
 	Mentions       *map[string][]MentionDTO `json:"mentions"`
+	Intervals      []string                 `json:"intervals"`
+	WeeklyWeekday  *string                  `json:"weekly_weekday"`
 }
 
 type CreateAlmanaxHook struct {
@@ -535,6 +542,8 @@ type CreateAlmanaxHook struct {
 	WantsIsoDate   bool
 	Format         string
 	Mentions       *map[string][]MentionDTO
+	Intervals      []string
+	WeeklyWeekday  *string
 }
 
 type SocialWebhookDTO struct {

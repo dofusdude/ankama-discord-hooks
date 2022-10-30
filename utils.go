@@ -60,6 +60,16 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
+func sliceContains[T comparable](s []T, str T) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
+}
+
 // based on string only https://gist.github.com/bgadrian/cb8b9344d9c66571ef331a14eb7a2e80
 // rewritten to be generic
 
