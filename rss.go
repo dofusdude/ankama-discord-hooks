@@ -172,7 +172,7 @@ func BuildDiscordHookRss(rssHookBuild RssSend) ([]PreparedHook, error) {
 		discordWebhook.Embeds = []DiscordEmbed{
 			{
 				Title: &rssHookBuild.Item.Title,
-				Color: 16777215,
+				Color: 3684408,
 				Url:   &rssHookBuild.Item.Link,
 			},
 		}

@@ -172,7 +172,7 @@ func BuildDiscordHookTwitter(twitterHook TwitterSend) ([]PreparedHook, error) {
 					Image: &DiscordImage{
 						Url: twitterHook.Tweet.Attachments[0],
 					},
-					Color: 16777215,
+					Color: 3684408,
 				},
 			}
 		}
