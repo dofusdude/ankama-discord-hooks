@@ -557,8 +557,7 @@ func handlePutAlmanax(w http.ResponseWriter, r *http.Request) {
 // utils for filter and fire hooks
 
 func isNewHour(tick time.Time) bool {
-	return true
-	//return tick.Minute() == 0
+	return tick.Minute() == 0
 }
 
 func endOfMonth(date time.Time) time.Time {
