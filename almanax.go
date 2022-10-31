@@ -557,7 +557,8 @@ func handlePutAlmanax(w http.ResponseWriter, r *http.Request) {
 // utils for filter and fire hooks
 
 func isNewHour(tick time.Time) bool {
-	return tick.Minute() == 0
+	return true
+	//return tick.Minute() == 0
 }
 
 func endOfMonth(date time.Time) time.Time {
@@ -1004,8 +1005,9 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 					}
 
 					beforeMentions = append(beforeMentions, DiscordEmbedField{
-						Name:  almTitle,
-						Value: fmt.Sprintf("%s\n%s", strings.Join(mentionStrings, " "), futureBonus.GetDescription()),
+						Name:   almTitle,
+						Value:  fmt.Sprintf("%s\n%s", strings.Join(mentionStrings, " "), futureBonus.GetDescription()),
+						Inline: false,
 					})
 				}
 			}
@@ -1052,8 +1054,9 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 						},
 						Fields: []DiscordEmbedField{
 							{
-								Name:  ":zap: " + almBonusType.GetName(),
-								Value: fmt.Sprintf("%s\n\n:moneybag: %d %s", almBonus.GetDescription(), tribute.GetQuantity(), almItem.GetName()),
+								Name:   ":zap: " + almBonusType.GetName(),
+								Value:  fmt.Sprintf("%s\n\n:moneybag: %d %s", almBonus.GetDescription(), tribute.GetQuantity(), almItem.GetName()),
+								Inline: false,
 							},
 						},
 					},
@@ -1140,8 +1143,9 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 				almBonus := almEntry.GetBonus()
 				almBonusType := almBonus.GetType()
 				discordWebhook.Embeds[currentEmbed].Fields = append(discordWebhook.Embeds[currentEmbed].Fields, DiscordEmbedField{
-					Name:  fmt.Sprintf("%s :zap: %s", almLocalDate, almBonusType.GetName()),
-					Value: fmt.Sprintf("%s\n:moneybag: %d %s", almBonus.GetDescription(), tribute.GetQuantity(), almItem.GetName()),
+					Name:   fmt.Sprintf("%s :zap: %s", almLocalDate, almBonusType.GetName()),
+					Value:  fmt.Sprintf("%s\n:moneybag: %d %s", almBonus.GetDescription(), tribute.GetQuantity(), almItem.GetName()),
+					Inline: len(discordWebhook.Embeds[currentEmbed].Fields)%2 != 0,
 				})
 
 				if len(discordWebhook.Embeds[currentEmbed].Fields) == 20 {
@@ -1191,8 +1195,9 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 			}
 
 			discordWebhook.Embeds[currentEmbed].Fields = append(discordWebhook.Embeds[currentEmbed].Fields, DiscordEmbedField{
-				Name:  totalTranslation,
-				Value: totalItems,
+				Name:   totalTranslation,
+				Value:  totalItems,
+				Inline: false,
 			})
 		}
 

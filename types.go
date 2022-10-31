@@ -105,8 +105,9 @@ type DiscordImage struct {
 }
 
 type DiscordEmbedField struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name   string `json:"name"`
+	Value  string `json:"value"`
+	Inline bool   `json:"inline"`
 }
 
 type DiscordEmbed struct {
