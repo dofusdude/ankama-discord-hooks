@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 var httpMetricsServer *http.Server
@@ -34,12 +35,14 @@ func main() {
 
 	// almanax
 	var almFeeds []AlmanaxFeed
-	almFeeds, err = repo.GetAlmanaxFeeds([]uint64{})
-	if err != nil {
+	if almFeeds, err = repo.GetAlmanaxFeeds([]uint64{}); err != nil {
 		log.Fatal(err)
 	}
 	for _, feed := range almFeeds {
-		go ListenAlmanax(ctx, feed)
+		go func(ctx context.Context, feed AlmanaxFeed) {
+			time.Sleep(time.Second * 1)
+			go ListenAlmanax(ctx, feed)
+		}(ctx, feed)
 	}
 
 	// twitter
