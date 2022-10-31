@@ -38,12 +38,12 @@ func main() {
 	if almFeeds, err = repo.GetAlmanaxFeeds([]uint64{}); err != nil {
 		log.Fatal(err)
 	}
-	for _, feed := range almFeeds {
-		go func(ctx context.Context, feed AlmanaxFeed) {
+	go func(ctx context.Context) {
+		for _, feed := range almFeeds {
 			time.Sleep(time.Second * 1)
 			go ListenAlmanax(ctx, feed)
-		}(ctx, feed)
-	}
+		}
+	}(ctx)
 
 	// twitter
 	var twitterFeeds []TwitterFeed
