@@ -473,7 +473,7 @@ func handlePutAlmanax(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if updateHook.BonusBlacklist != nil && len(updateHook.BonusBlacklist) > 0 {
+	if updateHook.BonusBlacklist != nil {
 		for _, blacklistEntry := range updateHook.BonusBlacklist {
 			if !possibleBonuses.Has(blacklistEntry) {
 				http.Error(w, "Unknown almanax bonus id: "+blacklistEntry+".", http.StatusBadRequest)
@@ -482,7 +482,7 @@ func handlePutAlmanax(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if updateHook.BonusWhitelist != nil && len(updateHook.BonusWhitelist) > 0 {
+	if updateHook.BonusWhitelist != nil {
 		for _, blacklistEntry := range updateHook.BonusWhitelist {
 			if !possibleBonuses.Has(blacklistEntry) {
 				http.Error(w, "Unknown almanax bonus id: "+blacklistEntry+".", http.StatusBadRequest)

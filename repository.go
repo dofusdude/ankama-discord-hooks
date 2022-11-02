@@ -431,16 +431,30 @@ func (r *Repository) UpdateAlmanaxHook(hook AlmanaxHookPut, id uuid.UUID) error 
 		}
 
 		if hook.BonusBlacklist != nil {
-			_, err = r.conn.Exec(r.ctx, "update almanax_webhooks set blacklist = $1 where id = $2", hook.BonusBlacklist, id)
-			if err != nil {
-				return err
+			if len(hook.BonusBlacklist) > 0 {
+				_, err = r.conn.Exec(r.ctx, "update almanax_webhooks set blacklist = $1 where id = $2", hook.BonusBlacklist, id)
+				if err != nil {
+					return err
+				}
+			} else {
+				_, err = r.conn.Exec(r.ctx, "update almanax_webhooks set blacklist = null where id = $1", id)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
 		if hook.BonusWhitelist != nil {
-			_, err = r.conn.Exec(r.ctx, "update almanax_webhooks set whitelist = $1 where id = $2", hook.BonusWhitelist, id)
-			if err != nil {
-				return err
+			if len(hook.BonusWhitelist) > 0 {
+				_, err = r.conn.Exec(r.ctx, "update almanax_webhooks set whitelist = $1 where id = $2", hook.BonusWhitelist, id)
+				if err != nil {
+					return err
+				}
+			} else {
+				_, err = r.conn.Exec(r.ctx, "update almanax_webhooks set whitelist = null where id = $1", id)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -589,19 +603,38 @@ func (r *Repository) UpdateSocialHook(socialType string, hook ISocialHookUpdate)
 	}
 
 	if hook.GetBlacklist() != nil {
-		_, err = r.conn.Exec(r.ctx, "update "+tableName+" set blacklist = $1 where id = $2", hook.GetBlacklist(), hook.GetId())
+		if len(hook.GetBlacklist()) > 0 {
+			_, err = r.conn.Exec(r.ctx, "update "+tableName+" set blacklist = $1 where id = $2", hook.GetBlacklist(), hook.GetId())
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = r.conn.Exec(r.ctx, "update "+tableName+" set blacklist = null where id = $1", hook.GetId())
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	if hook.GetWhitelist() != nil {
-		_, err = r.conn.Exec(r.ctx, "update "+tableName+" set whitelist = $1 where id = $2", hook.GetWhitelist(), hook.GetId())
+		if len(hook.GetWhitelist()) > 0 {
+			_, err = r.conn.Exec(r.ctx, "update "+tableName+" set whitelist = $1 where id = $2", hook.GetWhitelist(), hook.GetId())
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = r.conn.Exec(r.ctx, "update "+tableName+" set whitelist = null where id = $1", hook.GetId())
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	if hook.GetPreviewLength() != nil {
 		_, err = r.conn.Exec(r.ctx, "update "+tableName+" set preview_length = $1 where id = $2", hook.GetPreviewLength(), hook.GetId())
-	}
-
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	return r.setUpdatedHookTimestamp(hook.GetId())
