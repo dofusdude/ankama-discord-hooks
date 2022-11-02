@@ -40,7 +40,7 @@ func main() {
 	}
 	go func(ctx context.Context) {
 		for _, feed := range almFeeds {
-			time.Sleep(time.Second * 1)
+			time.Sleep(time.Second * 2)
 			go ListenAlmanax(ctx, feed)
 		}
 	}(ctx)
