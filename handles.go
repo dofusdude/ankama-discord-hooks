@@ -12,7 +12,7 @@ import (
 )
 
 func isDiscordWebhook(url string) bool {
-	prefixCheck := strings.HasPrefix(url, "https://discord.com/api/webhooks/")
+	prefixCheck := strings.HasPrefix(url, "https://discord.com/api/webhooks/") || strings.HasPrefix(url, "https://discordapp.com/api/webhooks/")
 	if !prefixCheck {
 		return false
 	}
