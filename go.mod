@@ -9,13 +9,15 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v5 v5.0.3
 	github.com/joho/godotenv v1.4.0
+	github.com/lib/pq v1.10.7
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/mmcdole/gofeed v1.1.3
 	github.com/prometheus/client_golang v1.13.0
 	github.com/rs/cors v1.8.2
 	github.com/steinfletcher/apitest v1.5.13
-	github.com/steinfletcher/apitest-jsonpath v1.7.1
+	github.com/steinfletcher/apitest-jsonpath v1.7.2
 	github.com/stretchr/testify v1.8.1
+	golang.org/x/text v0.4.0
 )
 
 require (
@@ -31,7 +33,6 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/puddle/v2 v2.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/lib/pq v1.10.7 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/mmcdole/goxpp v0.0.0-20181012175147-0068e33feabf // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -45,7 +46,6 @@ require (
 	golang.org/x/net v0.0.0-20220923203811-8be639271d50 // indirect
 	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1 // indirect
 	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
-	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
