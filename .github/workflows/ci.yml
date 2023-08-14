@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build
-        run: go build -v -race ./...
+        run: go build -v -race .
         
       - name: Setup tests
         env:
@@ -38,7 +38,7 @@ jobs:
           TWITTER_TOKEN: undefined
           POSTGRES_URL: postgres://postgres:webhooks@postgres:5432/webhooks?sslmode=disable
         run: |
-          go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+          go test -v -race -coverprofile=coverage.txt -covermode=atomic .
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
