@@ -94,7 +94,7 @@ func handleDeleteAlmanaxHook(w http.ResponseWriter, r *http.Request) {
 
 func getPossibleAlmanaxBonuses(ctx context.Context) (*Set[string], error) {
 	almClient := dodugo.NewAPIClient(dodugo.NewConfiguration())
-	almBonuses, _, err := almClient.MetaApi.GetMetaAlmanaxBonuses(ctx, "en").Execute()
+	almBonuses, _, err := almClient.MetaAPI.GetMetaAlmanaxBonuses(ctx, "en").Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -292,11 +292,6 @@ func handleCreateAlmanax(w http.ResponseWriter, r *http.Request) {
 			}
 			requestedBonuses[bonusId].Add(bonusId)
 			for _, mention := range mentions {
-				if mention.DiscordId < 0 {
-					http.Error(w, "Invalid mention id.", http.StatusBadRequest)
-					return
-				}
-
 				if mention.PingDaysBefore != nil {
 					if *mention.PingDaysBefore < 1 || *mention.PingDaysBefore > 31 {
 						http.Error(w, "PingDaysBefore should be between 1 and 31.", http.StatusBadRequest)
@@ -492,16 +487,10 @@ func handlePutAlmanax(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if updateHook.Mentions != nil {
-		for bonusId, mentions := range *updateHook.Mentions {
+		for bonusId := range *updateHook.Mentions {
 			if !possibleBonuses.Has(bonusId) {
 				http.Error(w, "Unknown almanax bonus id: "+bonusId+".", http.StatusBadRequest)
 				return
-			}
-			for _, mention := range mentions {
-				if mention.DiscordId < 0 {
-					http.Error(w, "Invalid mention id.", http.StatusBadRequest)
-					return
-				}
 			}
 		}
 	}
@@ -748,7 +737,7 @@ func HandleTimeAlmanax(almFeed AlmanaxFeed, _ any, tickTime time.Time, _ time.Du
 	}
 
 	var dodugoClient = dodugo.NewAPIClient(dodugo.NewConfiguration())
-	options := dodugoClient.AlmanaxApi.GetAlmanaxRange(context.Background(), almFeed.Language)
+	options := dodugoClient.AlmanaxAPI.GetAlmanaxRange(context.Background(), almFeed.Language)
 	options = options.Timezone(parisTz.String()).RangeFrom(tickTime.In(parisTz).Add(-24 * time.Hour).Format("2006-01-02")).RangeSize(33)
 	almRes, _, err := options.Execute()
 	if err != nil {
@@ -854,8 +843,7 @@ func HandleTimeAlmanax(almFeed AlmanaxFeed, _ any, tickTime time.Time, _ time.Du
 }
 
 func buildPreviewMentions(hookMentions map[string][]MentionDTO, almData map[string]dodugo.AlmanaxEntry, tz string) (map[int][]MentionDTO, error) {
-	var mentionsAcc map[int][]MentionDTO
-	mentionsAcc = make(map[int][]MentionDTO) // daysAhead => mentions
+	mentionsAcc := make(map[int][]MentionDTO) // daysAhead => mentions
 	for bonus, mentions := range hookMentions {
 		for _, mention := range mentions {
 			if mention.PingDaysBefore == nil {
@@ -870,11 +858,7 @@ func buildPreviewMentions(hookMentions map[string][]MentionDTO, almData map[stri
 			futureBonus := futureAlmData.GetBonus()
 			futureBonusType := futureBonus.GetType()
 			if futureBonusType.GetId() == bonus {
-				if _, ok := mentionsAcc[*mention.PingDaysBefore]; ok {
-					mentionsAcc[*mention.PingDaysBefore] = append(mentionsAcc[*mention.PingDaysBefore], mention)
-				} else {
-					mentionsAcc[*mention.PingDaysBefore] = []MentionDTO{mention}
-				}
+				mentionsAcc[*mention.PingDaysBefore] = append(mentionsAcc[*mention.PingDaysBefore], mention)
 			}
 		}
 	}
@@ -947,6 +931,9 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 
 				var mentionsAcc map[int][]MentionDTO
 				mentionsAcc, err = buildPreviewMentions(hookMentions, almanaxSend.BuildInfo.almData, webhook.GetTimezone())
+				if err != nil {
+					return nil, err
+				}
 
 				for daysBefore, mentions := range mentionsAcc {
 					var futureAlmData dodugo.AlmanaxEntry
