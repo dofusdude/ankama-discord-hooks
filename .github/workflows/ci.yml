@@ -16,8 +16,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.21'
+        
       - name: Check out repository code
         uses: actions/checkout@v3
 
@@ -26,7 +33,7 @@ jobs:
         
       - name: Setup tests
         env:
-          POSTGRES_URL: postgres://postgres:webhooks@postgres:5432/webhooks?sslmode=disable
+          POSTGRES_URL: postgres://postgres:webhooks@localhost:5432/webhooks?sslmode=disable
         run: |
           curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
           ./migrate -path migrations -database ${POSTGRES_URL} --verbose up
@@ -35,7 +42,7 @@ jobs:
         env:
           SERVERLESS_SENDER_URL: https://serverless.demo
           TWITTER_TOKEN: undefined
-          POSTGRES_URL: postgres://postgres:webhooks@postgres:5432/webhooks?sslmode=disable
+          POSTGRES_URL: postgres://postgres:webhooks@localhost:5432/webhooks?sslmode=disable
         run: |
           go test -v -race -coverprofile=coverage.txt -covermode=atomic .
 
