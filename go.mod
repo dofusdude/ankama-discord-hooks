@@ -3,7 +3,7 @@ module github.com/dofusdude/ankama-discord-hooks
 go 1.19
 
 require (
-	github.com/JohannesKaufmann/html-to-markdown v1.4.0
+	github.com/JohannesKaufmann/html-to-markdown v1.4.1
 	github.com/dofusdude/dodugo v0.8.0
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/google/uuid v1.3.1
