@@ -7,7 +7,7 @@ require (
 	github.com/dofusdude/dodugo v0.8.0
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/google/uuid v1.5.0
-	github.com/jackc/pgx/v5 v5.5.0
+	github.com/jackc/pgx/v5 v5.5.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/mitchellh/hashstructure/v2 v2.0.2
