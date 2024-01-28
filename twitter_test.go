@@ -3,17 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/steinfletcher/apitest"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-	"time"
 )
 
-func TestTwitterFeedParsingInReply(t *testing.T) {
+/*func TestTwitterFeedParsingInReply(t *testing.T) {
 	latestTweetsEnLastInReply := `{
   "data": [
     {
@@ -69,9 +69,9 @@ func TestTwitterFeedParsingInReply(t *testing.T) {
 	tweets, err := getLatestTweets(1, time.Now().Add(-time.Minute), inReplyMock.URL)
 	assert.Nil(t, err)
 	assert.Len(t, tweets, 0)
-}
+}*/
 
-func TestTwitterFeedParsingNoReply(t *testing.T) {
+/*func TestTwitterFeedParsingNoReply(t *testing.T) {
 	latestTweetsEnFirstNoReply := `{
   "data": [
     {
@@ -158,7 +158,7 @@ func TestTwitterFeedParsingNoReply(t *testing.T) {
 	tweets, err := getLatestTweets(1, tweetCreated.Add(-time.Minute), noReplyMock.URL)
 	assert.Nil(t, err)
 	assert.True(t, len(tweets) != 0)
-}
+}*/
 
 type TwitterTestSuite struct {
 	suite.Suite

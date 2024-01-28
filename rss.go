@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/mitchellh/hashstructure/v2"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"log"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/mitchellh/hashstructure/v2"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
 
@@ -77,6 +78,7 @@ func shortenAndRenderDescription(description string, maxLength int) (string, err
 
 func HandleTimeRss(socialFeed IFeed, state *RssState, _ time.Time, _ time.Duration, repo Repository) ([]RssSend, error) {
 	fp := gofeed.NewParser()
+	fp.UserAgent = "Mozilla/5.0 (Windows NT 6.1; rv:2.0b7) Gecko/20100101 Firefox/4.0b7"
 	var rssSends []RssSend
 	rssFeed, err := fp.ParseURL(socialFeed.GetRSSUrl())
 	if err != nil {

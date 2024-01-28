@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"time"
 )
@@ -38,7 +35,7 @@ func handleCreateTwitterHook(w http.ResponseWriter, r *http.Request) {
 
 // utils for filter and fire hooks
 
-func getLatestTweets(userId uint64, lastCheck time.Time, baseUrl string) ([]Tweet, error) {
+/*func getLatestTweets(userId uint64, lastCheck time.Time, baseUrl string) ([]Tweet, error) {
 	var err error
 	if userId == 0 {
 		return []Tweet{}, fmt.Errorf("invalid user id")
@@ -121,43 +118,46 @@ func getLatestTweets(userId uint64, lastCheck time.Time, baseUrl string) ([]Twee
 	}
 
 	return tweets, nil
-}
+}*/
 
 // fire hook handlers
 
 func HandleTimeTwitter(socialFeed IFeed, _ TwitterState, tickTime time.Time, tickRate time.Duration, repo Repository) ([]TwitterSend, error) {
-	var twitterSends []TwitterSend
-	tweets, err := getLatestTweets(socialFeed.GetTwitterId(), tickTime.Add(tickRate*-1), "https://api.twitter.com")
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-
-	for _, tweet := range tweets {
-		if !tweet.IsNew {
-			return nil, nil
-		}
-
-		var subbedWebhooks []HasIdBlackWhiteList[string]
-		if subbedWebhooks, err = repo.GetTwitterSubsForFeed(socialFeed); err != nil {
-			log.Printf("error getting subbed webhooks for feed %d: %v", socialFeed.GetId(), err)
+	return []TwitterSend{}, nil
+	/*
+		var twitterSends []TwitterSend
+		tweets, err := getLatestTweets(socialFeed.GetTwitterId(), tickTime.Add(tickRate*-1), "https://api.twitter.com")
+		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
-		if len(subbedWebhooks) == 0 {
-			return nil, nil
+
+		for _, tweet := range tweets {
+			if !tweet.IsNew {
+				return nil, nil
+			}
+
+			var subbedWebhooks []HasIdBlackWhiteList[string]
+			if subbedWebhooks, err = repo.GetTwitterSubsForFeed(socialFeed); err != nil {
+				log.Printf("error getting subbed webhooks for feed %d: %v", socialFeed.GetId(), err)
+				return nil, err
+			}
+			if len(subbedWebhooks) == 0 {
+				return nil, nil
+			}
+
+			webhooksToSend := filterByBlackWhitelist(subbedWebhooks, tweet.Text)
+			sendHooksTotal.Add(float64(len(webhooksToSend)))
+			sendHooksTwitter.Add(float64(len(webhooksToSend)))
+
+			twitterSends = append(twitterSends, TwitterSend{
+				Tweet:    tweet,
+				Webhooks: webhooksToSend,
+			})
 		}
 
-		webhooksToSend := filterByBlackWhitelist(subbedWebhooks, tweet.Text)
-		sendHooksTotal.Add(float64(len(webhooksToSend)))
-		sendHooksTwitter.Add(float64(len(webhooksToSend)))
-
-		twitterSends = append(twitterSends, TwitterSend{
-			Tweet:    tweet,
-			Webhooks: webhooksToSend,
-		})
-	}
-
-	return twitterSends, nil
+		return twitterSends, nil
+	*/
 }
 
 func BuildDiscordHookTwitter(twitterHook TwitterSend) ([]PreparedHook, error) {
