@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/JohannesKaufmann/html-to-markdown v1.5.0
-	github.com/dofusdude/dodugo v0.8.1
+	github.com/dofusdude/dodugo v0.8.2
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.3
