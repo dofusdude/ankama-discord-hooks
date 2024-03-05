@@ -16,7 +16,7 @@ require (
 	github.com/rs/cors v1.10.1
 	github.com/steinfletcher/apitest v1.5.15
 	github.com/steinfletcher/apitest-jsonpath v1.7.2
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	golang.org/x/text v0.14.0
 )
 
