@@ -16,7 +16,7 @@ require (
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rs/cors v1.11.1
-	github.com/steinfletcher/apitest v1.5.15
+	github.com/steinfletcher/apitest v1.5.17
 	github.com/steinfletcher/apitest-jsonpath v1.7.2
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/text v0.21.0
