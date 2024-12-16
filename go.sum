@@ -87,8 +87,8 @@ github.com/sergi/go-diff v1.3.1/go.mod h1:aMJSSKb2lpPvRNec0+w3fl7LP9IOFzdc9Pa4NF
 github.com/shopspring/decimal v1.3.1 h1:2Usl1nmF/WZucqkFZhnfFYxxxu8LG21F6nPQBE5gKV8=
 github.com/shopspring/decimal v1.3.1/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 github.com/steinfletcher/apitest v1.5.10/go.mod h1:cf7Bneo52IIAgpqhP8xaLlzWgAiQ9fHtsDMjeDnZ3so=
-github.com/steinfletcher/apitest v1.5.15 h1:AAdTN0yMbf0VMH/PMt9uB2I7jljepO6i+5uhm1PjH3c=
-github.com/steinfletcher/apitest v1.5.15/go.mod h1:mF+KnYaIkuHM0C4JgGzkIIOJAEjo+EA5tTjJ+bHXnQc=
+github.com/steinfletcher/apitest v1.5.17 h1:nlrfVNLN/g6T2GxDnjfK+QTeQ2be1SNAt8VkAy5twLQ=
+github.com/steinfletcher/apitest v1.5.17/go.mod h1:mF+KnYaIkuHM0C4JgGzkIIOJAEjo+EA5tTjJ+bHXnQc=
 github.com/steinfletcher/apitest-jsonpath v1.7.2 h1:H7Y3f7zwHQ9crUjA36Z/vhE5x8xidGCriJqsDZ4uHgs=
 github.com/steinfletcher/apitest-jsonpath v1.7.2/go.mod h1:FzU2i3ZIyIdF6yBI8a0DZ10gCC6jhiD1yAdU0nCz5Do=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
