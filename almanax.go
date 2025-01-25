@@ -736,7 +736,19 @@ func HandleTimeAlmanax(almFeed AlmanaxFeed, _ any, tickTime time.Time, _ time.Du
 		return nil, err
 	}
 
-	var dodugoClient = dodugo.NewAPIClient(dodugo.NewConfiguration())
+	dodugoCfg := &dodugo.Configuration{
+		DefaultHeader: make(map[string]string),
+		UserAgent:     "ankama-discord-hooks",
+		Debug:         false,
+		Servers: dodugo.ServerConfigurations{
+			{
+				URL:         "https://api.dofusdu.de",
+				Description: "API",
+			},
+		},
+		OperationServers: map[string]dodugo.ServerConfigurations{},
+	}
+	var dodugoClient = dodugo.NewAPIClient(dodugoCfg)
 	options := dodugoClient.AlmanaxAPI.GetAlmanaxRange(context.Background(), almFeed.Language)
 	options = options.Timezone(parisTz.String()).RangeFrom(tickTime.In(parisTz).Add(-24 * time.Hour).Format("2006-01-02")).RangeSize(33)
 	almRes, _, err := options.Execute()
