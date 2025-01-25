@@ -150,7 +150,7 @@ func (suite *AlmanaxTestSuite) SetupSuite() {
 			End())
 	}
 	suite.almBonusMock = apitest.NewMock().
-		Get("https://api.dofusdu.de/dofus2/meta/en/almanax/bonuses").
+		Get("https://api.dofusdu.de/dofus3/meta/en/almanax/bonuses").
 		RespondWith().
 		Body(`[
 		  {
@@ -187,11 +187,11 @@ func (suite *AlmanaxTestSuite) Test_Feeds() {
 		Expect(suite.T()).
 		Status(http.StatusOK).
 		Assert(jsonpath.Chain().
-			Contains("$.subscriptions", "dofus2_en").
-			Contains("$.subscriptions", "dofus2_fr").
-			Contains("$.subscriptions", "dofus2_de").
-			Contains("$.subscriptions", "dofus2_es").
-			Contains("$.subscriptions", "dofus2_it").
+			Contains("$.subscriptions", "dofus3_en").
+			Contains("$.subscriptions", "dofus3_fr").
+			Contains("$.subscriptions", "dofus3_de").
+			Contains("$.subscriptions", "dofus3_es").
+			Contains("$.subscriptions", "dofus3_it").
 			End(),
 		).
 		End()
@@ -222,7 +222,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create() {
 			},
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2_en",
+				"dofus3_en",
 			},
 			Format: "discord",
 		}).
@@ -234,7 +234,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create() {
 			Equal("$.daily_settings.timezone", "Europe/Paris").
 			Equal("$.daily_settings.midnight_offset", float64(1)).
 			NotPresent("$.callback").
-			Equal("$.subscriptions[0].id", "dofus2_en").
+			Equal("$.subscriptions[0].id", "dofus3_en").
 			Equal("$.bonus_whitelist", nil).
 			Equal("$.bonus_blacklist", nil).
 			Equal("$.mentions", nil).
@@ -263,7 +263,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create() {
 			},
 			Callback: "https://discord.com/api/webhooks/123/abc3",
 			Subscriptions: []string{
-				"dofus2_en",
+				"dofus3_en",
 			},
 			Format: "discord",
 		}).
@@ -288,7 +288,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create() {
 			},
 			Callback: "https://discord.com/api/webhooks/123/abc2",
 			Subscriptions: []string{
-				"dofus2_en",
+				"dofus3_en",
 			}, // missing format
 		}).
 		Expect(suite.T()).
@@ -303,14 +303,14 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create() {
 			BonusBlacklist: []string{},
 			Callback:       "https://discord.com/api/webhooks/123/abc2",
 			Subscriptions: []string{
-				"dofus2_en",
+				"dofus3_en",
 			},
 			Format: "discord",
 		}).
 		Expect(suite.T()).
 		Status(http.StatusCreated).
 		Assert(jsonpath.Chain().
-			Equal("$.subscriptions[0].id", "dofus2_en").
+			Equal("$.subscriptions[0].id", "dofus3_en").
 			Equal("$.bonus_whitelist", nil).
 			Equal("$.bonus_blacklist", nil).
 			End()).
@@ -325,7 +325,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Defaults() {
 		JSON(AlmanaxHookPost{
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2_fr",
+				"dofus3_fr",
 			},
 			Format: "discord",
 		}).
@@ -337,7 +337,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Defaults() {
 			Equal("$.daily_settings.timezone", "Europe/Paris").
 			Equal("$.daily_settings.midnight_offset", float64(0)).
 			NotPresent("$.callback").
-			Equal("$.subscriptions[0].id", "dofus2_fr").
+			Equal("$.subscriptions[0].id", "dofus3_fr").
 			Equal("$.bonus_whitelist", nil).
 			Equal("$.bonus_blacklist", nil).
 			Equal("$.mentions", nil).
@@ -359,7 +359,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Mentions() {
 		JSON(AlmanaxHookPost{
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2_fr",
+				"dofus3_fr",
 			},
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
@@ -384,7 +384,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Mentions() {
 			Equal("$.daily_settings.timezone", "Europe/Paris").
 			Equal("$.daily_settings.midnight_offset", float64(0)).
 			NotPresent("$.callback").
-			Equal("$.subscriptions[0].id", "dofus2_fr").
+			Equal("$.subscriptions[0].id", "dofus3_fr").
 			Equal("$.bonus_whitelist", nil).
 			Equal("$.bonus_blacklist", nil).
 			Equal("$.mentions.loot[0].discord_id", float64(123)).
@@ -406,7 +406,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Mentions() {
 		JSON(AlmanaxHookPost{
 			Callback: "https://discord.com/api/webhooks/123/abc1",
 			Subscriptions: []string{
-				"dofus2_fr",
+				"dofus3_fr",
 			},
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
@@ -443,7 +443,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Mentions() {
 		JSON(AlmanaxHookPost{
 			Callback: "https://discord.com/api/webhooks/123/abc2",
 			Subscriptions: []string{
-				"dofus2_fr",
+				"dofus3_fr",
 			},
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
@@ -483,7 +483,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Delete() {
 		JSON(AlmanaxHookPost{
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2_fr",
+				"dofus3_fr",
 			},
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
@@ -535,7 +535,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_UnknownTz() {
 		},
 		Callback: "https://discord.com/api/webhooks/123/abc",
 		Subscriptions: []string{
-			"dofus2_en",
+			"dofus3_en",
 		},
 		Format: "discord",
 	}
@@ -567,7 +567,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_LargeOffset() {
 			},
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2_en",
+				"dofus3_en",
 			},
 			Format: "discord",
 		}).
@@ -593,7 +593,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_And_Get() {
 			},
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2_en",
+				"dofus3_en",
 			},
 			Format: "discord",
 		}).
@@ -617,7 +617,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_And_Get() {
 			Equal("$.daily_settings.timezone", "Europe/Berlin").
 			Equal("$.daily_settings.midnight_offset", float64(1)).
 			NotPresent("$.callback").
-			Equal("$.subscriptions[0].id", "dofus2_en").
+			Equal("$.subscriptions[0].id", "dofus3_en").
 			Equal("$.bonus_whitelist", nil).
 			Equal("$.bonus_blacklist", nil).
 			Equal("$.mentions", nil).
@@ -638,7 +638,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Intervals_And_Update() {
 		JSON(AlmanaxHookPost{
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2_fr",
+				"dofus3_fr",
 			},
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
@@ -754,7 +754,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_And_Update() {
 		JSON(AlmanaxHookPost{
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2_fr",
+				"dofus3_fr",
 			},
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
@@ -791,8 +791,8 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_And_Update() {
 		JSON(AlmanaxHookPut{
 			BonusBlacklist: []string{},
 			Subscriptions: []string{
-				"dofus2_en",
-				"dofus2_fr",
+				"dofus3_en",
+				"dofus3_fr",
 			},
 		}).
 		Expect(suite.T()).
@@ -803,8 +803,8 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_And_Update() {
 			Equal("$.daily_settings.timezone", "Europe/Paris").
 			Equal("$.daily_settings.midnight_offset", float64(0)).
 			NotPresent("$.callback").
-			Equal("$.subscriptions[0].id", "dofus2_en").
-			Equal("$.subscriptions[1].id", "dofus2_fr").
+			Equal("$.subscriptions[0].id", "dofus3_en").
+			Equal("$.subscriptions[1].id", "dofus3_fr").
 			Equal("$.bonus_whitelist", nil).
 			Equal("$.bonus_blacklist", nil).
 			Present("$.mentions").
@@ -833,8 +833,8 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_And_Update() {
 			Equal("$.daily_settings.timezone", "Europe/Paris").
 			Equal("$.daily_settings.midnight_offset", float64(0)).
 			NotPresent("$.callback").
-			Equal("$.subscriptions[0].id", "dofus2_en").
-			Equal("$.subscriptions[1].id", "dofus2_fr").
+			Equal("$.subscriptions[0].id", "dofus3_en").
+			Equal("$.subscriptions[1].id", "dofus3_fr").
 			Equal("$.bonus_whitelist[0]", "loot").
 			Equal("$.bonus_blacklist", nil).
 			Present("$.mentions").
@@ -991,7 +991,7 @@ func (suite *AlmanaxTestSuite) Test_GetFeeds() {
 		JSON(AlmanaxHookPost{
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2_fr",
+				"dofus3_fr",
 			},
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
@@ -1018,8 +1018,8 @@ func (suite *AlmanaxTestSuite) Test_GetFeeds() {
 	assert.Nil(suite.T(), err)
 
 	assert.Len(suite.T(), feeds, 1)
-	dofus2Fr := feeds[0]
-	hooks, err := suite.db.GetAlmanaxSubsForFeed(dofus2Fr)
+	dofus3Fr := feeds[0]
+	hooks, err := suite.db.GetAlmanaxSubsForFeed(dofus3Fr)
 	assert.Nil(suite.T(), err)
 
 	assert.Len(suite.T(), hooks, 1)

@@ -605,30 +605,30 @@ func localTimeFormat(lang string, almDateString string, translations map[string]
 	return out, nil
 }
 
-func getFutureAlmData(almData map[string]dodugo.AlmanaxEntry, timezone string, daysAhead int) (dodugo.AlmanaxEntry, error) {
+func getFutureAlmData(almData map[string]dodugo.Almanax, timezone string, daysAhead int) (dodugo.Almanax, error) {
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
-		return dodugo.AlmanaxEntry{}, err
+		return dodugo.Almanax{}, err
 	}
 	localDate := time.Now().In(location).Add(time.Hour * 24 * time.Duration(daysAhead)).Format("2006-01-02")
 	return almData[localDate], nil
 }
 
-func getLocalAlmData(almData map[string]dodugo.AlmanaxEntry, timezone string) (dodugo.AlmanaxEntry, error) {
+func getLocalAlmData(almData map[string]dodugo.Almanax, timezone string) (dodugo.Almanax, error) {
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
-		return dodugo.AlmanaxEntry{}, err
+		return dodugo.Almanax{}, err
 	}
 	localDate := time.Now().In(location).Format("2006-01-02")
 	return almData[localDate], nil
 }
 
-func getLocalAlmDataRange(almData map[string]dodugo.AlmanaxEntry, timezone string, start time.Time, end time.Time) ([]dodugo.AlmanaxEntry, error) {
+func getLocalAlmDataRange(almData map[string]dodugo.Almanax, timezone string, start time.Time, end time.Time) ([]dodugo.Almanax, error) {
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
 		return nil, err
 	}
-	var out []dodugo.AlmanaxEntry
+	var out []dodugo.Almanax
 	for i := 0; i <= int(end.Sub(start).Hours()/24); i++ {
 		localDate := start.Add(time.Hour * 24 * time.Duration(i)).In(location).Format("2006-01-02")
 		out = append(out, almData[localDate])
@@ -680,7 +680,7 @@ func filterAlmanaxBonusWhiteBlacklist(webhook AlmanaxWebhook, almBonusType dodug
 	return false
 }
 
-func buildAlmSpan(tickTime time.Time, intervalType string, tz string, almData map[string]dodugo.AlmanaxEntry) ([]dodugo.AlmanaxEntry, error) {
+func buildAlmSpan(tickTime time.Time, intervalType string, tz string, almData map[string]dodugo.Almanax) ([]dodugo.Almanax, error) {
 	var err error
 	var location *time.Location
 	location, err = time.LoadLocation(tz)
@@ -700,7 +700,7 @@ func buildAlmSpan(tickTime time.Time, intervalType string, tz string, almData ma
 		end = endOfMonth(start)
 	}
 
-	var localAlmData []dodugo.AlmanaxEntry
+	var localAlmData []dodugo.Almanax
 	localAlmData, err = getLocalAlmDataRange(almData, tz, start, end)
 	if err != nil {
 		return nil, err
@@ -744,7 +744,7 @@ func HandleTimeAlmanax(almFeed AlmanaxFeed, _ any, tickTime time.Time, _ time.Du
 		return nil, err
 	}
 
-	almData := make(map[string]dodugo.AlmanaxEntry)
+	almData := make(map[string]dodugo.Almanax)
 	for _, entry := range almRes {
 		almData[entry.GetDate()] = entry
 	}
@@ -772,7 +772,7 @@ func HandleTimeAlmanax(almFeed AlmanaxFeed, _ any, tickTime time.Time, _ time.Du
 		for _, intervalType := range toFire {
 			// check if filters will hide the hook completely
 			if intervalType == "daily" {
-				var localAlmData dodugo.AlmanaxEntry
+				var localAlmData dodugo.Almanax
 				localAlmData, err = getLocalAlmData(almData, *webhook.DailySettings.Timezone)
 				if err != nil {
 					return nil, err
@@ -787,12 +787,12 @@ func HandleTimeAlmanax(almFeed AlmanaxFeed, _ any, tickTime time.Time, _ time.Du
 				}
 				onlyPres = append(onlyPres, filterOut)
 			} else { // weekly or monthly
-				var localAlmData []dodugo.AlmanaxEntry
+				var localAlmData []dodugo.Almanax
 				if localAlmData, err = buildAlmSpan(tickTime, intervalType, webhook.GetTimezone(), almData); err != nil {
 					return nil, err
 				}
 
-				var filteredAlmData []dodugo.AlmanaxEntry
+				var filteredAlmData []dodugo.Almanax
 				for _, almEntry := range localAlmData {
 					almBonus := almEntry.GetBonus()
 					almBonusType := almBonus.GetType()
@@ -842,7 +842,7 @@ func HandleTimeAlmanax(almFeed AlmanaxFeed, _ any, tickTime time.Time, _ time.Du
 	}, nil
 }
 
-func buildPreviewMentions(hookMentions map[string][]MentionDTO, almData map[string]dodugo.AlmanaxEntry, tz string) (map[int][]MentionDTO, error) {
+func buildPreviewMentions(hookMentions map[string][]MentionDTO, almData map[string]dodugo.Almanax, tz string) (map[int][]MentionDTO, error) {
 	mentionsAcc := make(map[int][]MentionDTO) // daysAhead => mentions
 	for bonus, mentions := range hookMentions {
 		for _, mention := range mentions {
@@ -866,13 +866,27 @@ func buildPreviewMentions(hookMentions map[string][]MentionDTO, almData map[stri
 	return mentionsAcc, nil
 }
 
+func formatKamas(kamas int32) string {
+	kamasStr := fmt.Sprintf("%d", kamas)
+	n := len(kamasStr)
+	formatted := make([]byte, 0, n+(n-1)/3)
+	for i := 0; i < n; i++ {
+		if i > 0 && (n-i)%3 == 0 {
+			formatted = append(formatted, ' ')
+		}
+		formatted = append(formatted, kamasStr[i])
+	}
+
+	return string(formatted) + " K"
+}
+
 func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 	var res []PreparedHook
 	var err error
 	for webhookIdx, webhook := range almanaxSend.Webhooks {
 		var discordWebhook DiscordWebhook
 		if almanaxSend.IntervalType[webhookIdx] == "daily" {
-			var localAlmData dodugo.AlmanaxEntry
+			var localAlmData dodugo.Almanax
 			localAlmData, err = getLocalAlmData(almanaxSend.BuildInfo.almData, webhook.GetTimezone())
 			if err != nil {
 				return nil, err
@@ -936,7 +950,7 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 				}
 
 				for daysBefore, mentions := range mentionsAcc {
-					var futureAlmData dodugo.AlmanaxEntry
+					var futureAlmData dodugo.Almanax
 					futureAlmData, err = getFutureAlmData(almanaxSend.BuildInfo.almData, webhook.GetTimezone(), daysBefore)
 					if err != nil {
 						return nil, err
@@ -1031,6 +1045,8 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 					discordWebhook.Content = &mentionString
 				}
 
+				kamas := formatKamas(localAlmData.GetRewardKamas())
+
 				discordWebhook.Embeds = []DiscordEmbed{
 					{
 						Title: &almLocalDate,
@@ -1041,7 +1057,7 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 						Fields: []DiscordEmbedField{
 							{
 								Name:   ":zap: " + almBonusType.GetName(),
-								Value:  fmt.Sprintf("%s\n\n:moneybag: %d %s", almBonus.GetDescription(), tribute.GetQuantity(), almItem.GetName()),
+								Value:  fmt.Sprintf("*%s*\n\n:moneybag: %s\n\n:pray: %dx **%s**", almBonus.GetDescription(), kamas, tribute.GetQuantity(), almItem.GetName()),
 								Inline: false,
 							},
 						},
@@ -1053,7 +1069,7 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 				}
 			}
 		} else {
-			var localAlmData []dodugo.AlmanaxEntry
+			var localAlmData []dodugo.Almanax
 			if localAlmData, err = buildAlmSpan(almanaxSend.TickTime, almanaxSend.IntervalType[webhookIdx], webhook.GetTimezone(), almanaxSend.BuildInfo.almData); err != nil {
 				log.Printf("Error building almanax span: %s", err)
 				continue
@@ -1124,17 +1140,18 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 						return nil, err
 					}
 				}
+				kamas := formatKamas(almEntry.GetRewardKamas())
 				tribute := almEntry.GetTribute()
 				almItem := tribute.GetItem()
 				almBonus := almEntry.GetBonus()
 				almBonusType := almBonus.GetType()
 				discordWebhook.Embeds[currentEmbed].Fields = append(discordWebhook.Embeds[currentEmbed].Fields, DiscordEmbedField{
-					Name:   fmt.Sprintf("%s :zap: %s", almLocalDate, almBonusType.GetName()),
-					Value:  fmt.Sprintf("%s\n:moneybag: %d %s", almBonus.GetDescription(), tribute.GetQuantity(), almItem.GetName()),
+					Name:   fmt.Sprintf("%s – %s", almLocalDate, almBonusType.GetName()),
+					Value:  fmt.Sprintf("*%s*\n%s\n%dx **%s**", almBonus.GetDescription(), kamas, tribute.GetQuantity(), almItem.GetName()),
 					Inline: len(discordWebhook.Embeds[currentEmbed].Fields)%2 != 0,
 				})
 
-				if len(discordWebhook.Embeds[currentEmbed].Fields) == 20 {
+				if len(discordWebhook.Embeds[currentEmbed].Fields) == 16 {
 					*discordWebhook.Embeds[currentEmbed].Title = almLocalDateStart + " - " + almLocalDate + " (1/2)"
 					var parsedLastDate time.Time
 					if parsedLastDate, err = time.Parse("2006-01-02", almEntry.GetDate()); err != nil {
@@ -1177,7 +1194,7 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 
 			var totalItems string
 			for itemName, itemQuantity := range itemsAgg {
-				totalItems += fmt.Sprintf("%d %s\n", itemQuantity, itemName)
+				totalItems += fmt.Sprintf("%dx **%s**\n", itemQuantity, itemName)
 			}
 
 			discordWebhook.Embeds[currentEmbed].Fields = append(discordWebhook.Embeds[currentEmbed].Fields, DiscordEmbedField{

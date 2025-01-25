@@ -223,18 +223,18 @@ func (suite *RssTestSuite) Test_Feeds() {
 		Expect(suite.T()).
 		Status(http.StatusOK).
 		Assert(jsonpath.Chain().
-			Contains("$.subscriptions", "dofus2-fr-official-news").
-			Contains("$.subscriptions", "dofus2-en-official-news").
-			Contains("$.subscriptions", "dofus2-es-official-news").
-			Contains("$.subscriptions", "dofus2-pt-official-news").
-			Contains("$.subscriptions", "dofus2-fr-official-changelog").
-			Contains("$.subscriptions", "dofus2-en-official-changelog").
-			Contains("$.subscriptions", "dofus2-es-official-changelog").
-			Contains("$.subscriptions", "dofus2-pt-official-changelog").
-			Contains("$.subscriptions", "dofus2-fr-official-devblog").
-			Contains("$.subscriptions", "dofus2-es-official-devblog").
-			Contains("$.subscriptions", "dofus2-en-official-devblog").
-			Contains("$.subscriptions", "dofus2-pt-official-devblog").
+			Contains("$.subscriptions", "dofus3-fr-official-news").
+			Contains("$.subscriptions", "dofus3-en-official-news").
+			Contains("$.subscriptions", "dofus3-es-official-news").
+			Contains("$.subscriptions", "dofus3-pt-official-news").
+			Contains("$.subscriptions", "dofus3-fr-official-changelog").
+			Contains("$.subscriptions", "dofus3-en-official-changelog").
+			Contains("$.subscriptions", "dofus3-es-official-changelog").
+			Contains("$.subscriptions", "dofus3-pt-official-changelog").
+			Contains("$.subscriptions", "dofus3-fr-official-devblog").
+			Contains("$.subscriptions", "dofus3-es-official-devblog").
+			Contains("$.subscriptions", "dofus3-en-official-devblog").
+			Contains("$.subscriptions", "dofus3-pt-official-devblog").
 			End(),
 		).
 		End()
@@ -248,7 +248,7 @@ func (suite *RssTestSuite) Test_GetFeeds() {
 		JSON(SocialHookCreate{
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2-fr-official-news",
+				"dofus3-fr-official-news",
 			},
 			Format: "discord",
 		}).
@@ -279,7 +279,7 @@ func (suite *RssTestSuite) Test_CRUD_Create() {
 		JSON(SocialHookCreate{
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2-fr-official-news",
+				"dofus3-fr-official-news",
 			},
 			Format: "discord",
 		}).
@@ -287,7 +287,7 @@ func (suite *RssTestSuite) Test_CRUD_Create() {
 		Status(http.StatusCreated).
 		Assert(jsonpath.Chain().
 			Present("$.id").
-			Contains("$.subscriptions", "dofus2-fr-official-news").
+			Contains("$.subscriptions", "dofus3-fr-official-news").
 			End(),
 		).
 		End()
@@ -311,7 +311,7 @@ func (suite *RssTestSuite) Test_CRUD_Create() {
 		JSON(SocialHookCreate{
 			Callback: "https://discord.com/api/webhooks/123/abc3",
 			Subscriptions: []string{
-				"dofus2-fr-official-news",
+				"dofus3-fr-official-news",
 			}, // no format
 		}).
 		Expect(suite.T()).
@@ -325,7 +325,7 @@ func (suite *RssTestSuite) Test_CRUD_Create() {
 		JSON(SocialHookCreate{
 			Callback: "https://discord.com/api/webhooks/123/abc", // double callback
 			Subscriptions: []string{
-				"dofus2-fr-official-news",
+				"dofus3-fr-official-news",
 			},
 			Format: "discord",
 		}).
@@ -362,7 +362,7 @@ func (suite *RssTestSuite) Test_CRUD_Create() {
 		JSON(SocialHookCreate{
 			Callback: "https://discord.com/api/webhooks/123/abc5",
 			Subscriptions: []string{
-				"dofus2-fr-official-news",
+				"dofus3-fr-official-news",
 			},
 			Whitelist: []string{
 				"dofus touch",
@@ -376,7 +376,7 @@ func (suite *RssTestSuite) Test_CRUD_Create() {
 		Status(http.StatusCreated).
 		Assert(jsonpath.Chain().
 			Present("$.id").
-			Contains("$.subscriptions", "dofus2-fr-official-news").
+			Contains("$.subscriptions", "dofus3-fr-official-news").
 			Contains("$.whitelist", "dofus touch").
 			Contains("$.blacklist", "ankama").
 			Present("$.created_at").
@@ -395,7 +395,7 @@ func (suite *RssTestSuite) Test_CRUD_Create() {
 		JSON(SocialHookCreate{
 			Callback: "https://discord.com/api/webhooks/123/abc6",
 			Subscriptions: []string{
-				"dofus2-fr-official-news",
+				"dofus3-fr-official-news",
 			},
 			Whitelist: []string{
 				"dofus touch",
@@ -406,7 +406,7 @@ func (suite *RssTestSuite) Test_CRUD_Create() {
 		Status(http.StatusCreated).
 		Assert(jsonpath.Chain().
 			Present("$.id").
-			Contains("$.subscriptions", "dofus2-fr-official-news").
+			Contains("$.subscriptions", "dofus3-fr-official-news").
 			Contains("$.whitelist", "dofus touch").
 			Present("$.created_at").
 			NotEqual("$.updated_at", nil).
@@ -426,7 +426,7 @@ func (suite *RssTestSuite) Test_CRUD_Create_And_Get() {
 		JSON(SocialHookCreate{
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2-fr-official-news",
+				"dofus3-fr-official-news",
 			},
 			Format: "discord",
 		}).
@@ -434,7 +434,7 @@ func (suite *RssTestSuite) Test_CRUD_Create_And_Get() {
 		Status(http.StatusCreated).
 		Assert(jsonpath.Chain().
 			Present("$.id").
-			Contains("$.subscriptions", "dofus2-fr-official-news").
+			Contains("$.subscriptions", "dofus3-fr-official-news").
 			End(),
 		).
 		End()
@@ -449,7 +449,7 @@ func (suite *RssTestSuite) Test_CRUD_Create_And_Get() {
 		Status(http.StatusOK).
 		Assert(jsonpath.Chain().
 			Present("$.id").
-			Contains("$.subscriptions", "dofus2-fr-official-news").
+			Contains("$.subscriptions", "dofus3-fr-official-news").
 			Present("$.created_at").
 			Present("$.updated_at").
 			NotPresent("$.last_fired_at").
@@ -466,7 +466,7 @@ func (suite *RssTestSuite) Test_CRUD_Delete() {
 		JSON(SocialHookCreate{
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2-fr-official-news",
+				"dofus3-fr-official-news",
 			},
 			Format: "discord",
 		}).
@@ -474,7 +474,7 @@ func (suite *RssTestSuite) Test_CRUD_Delete() {
 		Status(http.StatusCreated).
 		Assert(jsonpath.Chain().
 			Present("$.id").
-			Contains("$.subscriptions", "dofus2-fr-official-news").
+			Contains("$.subscriptions", "dofus3-fr-official-news").
 			End(),
 		).
 		End()
@@ -505,7 +505,7 @@ func (suite *RssTestSuite) Test_CRUD_Create_And_Update() {
 		JSON(SocialHookCreate{
 			Callback: "https://discord.com/api/webhooks/123/abc",
 			Subscriptions: []string{
-				"dofus2-fr-official-news",
+				"dofus3-fr-official-news",
 			},
 			Format: "discord",
 		}).
@@ -513,7 +513,7 @@ func (suite *RssTestSuite) Test_CRUD_Create_And_Update() {
 		Status(http.StatusCreated).
 		Assert(jsonpath.Chain().
 			Present("$.id").
-			Contains("$.subscriptions", "dofus2-fr-official-news").
+			Contains("$.subscriptions", "dofus3-fr-official-news").
 			End(),
 		).
 		End()
@@ -529,7 +529,7 @@ func (suite *RssTestSuite) Test_CRUD_Create_And_Update() {
 		Put("/webhooks/rss/" + id.String()).
 		JSON(SocialWebhookPut{
 			Subscriptions: []string{
-				"dofus2-en-official-news",
+				"dofus3-en-official-news",
 			},
 			Whitelist: []string{
 				"dofus",
@@ -542,7 +542,7 @@ func (suite *RssTestSuite) Test_CRUD_Create_And_Update() {
 		Status(http.StatusOK).
 		Assert(jsonpath.Chain().
 			Present("$.id").
-			Contains("$.subscriptions", "dofus2-en-official-news").
+			Contains("$.subscriptions", "dofus3-en-official-news").
 			Contains("$.whitelist", "dofus").
 			Contains("$.blacklist", "ankama").
 			Present("$.created_at").

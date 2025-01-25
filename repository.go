@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/lib/pq"
 	"log"
 	"sync"
 	"time"
+
+	"github.com/lib/pq"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -377,9 +378,6 @@ func (r *Repository) FindSocialFeedId(socialType string, humanId string) (uint64
 
 func (r *Repository) CreateSocialHook(socialType string, createHook SocialHookCreate) (uuid.UUID, error) {
 	var err error
-	if err != nil {
-		return uuid.Nil, err
-	}
 	var id uuid.UUID
 	err = r.conn.QueryRow(r.ctx, "insert into webhooks (format, callback, type) values ($1, $2, $3) returning id", createHook.Format, createHook.Callback, socialType).Scan(&id)
 	if err != nil {

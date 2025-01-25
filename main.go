@@ -4,11 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var httpMetricsServer *http.Server
@@ -19,15 +20,11 @@ func main() {
 	flag.Parse()
 	SendBatchEnabled = *batchFlag
 
-	var err error
 	ReadEnvs()
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
 
 	ctx := context.Background()
 
+	var err error
 	var repo Repository
 	if err = repo.Init(ctx); err != nil {
 		log.Fatal(err)

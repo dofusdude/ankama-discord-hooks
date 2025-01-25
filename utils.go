@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -25,7 +26,7 @@ func ReadEnvs() {
 	envDir := getEnv("ENV_DIR", gopath+"/src/github.com/dofusdude/ankama-discord-hooks")
 	err := godotenv.Load(envDir + "/.env")
 	if err != nil {
-		log.Println("Could not find .env file, loading from env variables")
+		log.Println("Did not find .env file")
 	}
 
 	ApiPort = getEnv("API_PORT", "3000")

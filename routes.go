@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
-	"net/http"
-	"time"
 )
 
 func idExtractMiddleware(next http.Handler) http.Handler {

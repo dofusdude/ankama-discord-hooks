@@ -1,10 +1,11 @@
 package main
 
 import (
+	"time"
+
 	"github.com/dofusdude/dodugo"
 	"github.com/google/uuid"
 	"github.com/mmcdole/gofeed"
-	"time"
 )
 
 const (
@@ -183,7 +184,7 @@ type AlmanaxHookPost struct {
 }
 
 type AlmanaxHookBuildInfo struct {
-	almData      map[string]dodugo.AlmanaxEntry
+	almData      map[string]dodugo.Almanax
 	translations map[string]map[string]string
 }
 
