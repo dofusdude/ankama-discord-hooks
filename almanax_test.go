@@ -150,7 +150,7 @@ func (suite *AlmanaxTestSuite) SetupSuite() {
 			End())
 	}
 	suite.almBonusMock = apitest.NewMock().
-		Get("https://api.dofusdu.de/dofus3/meta/en/almanax/bonuses").
+		Get("https://api.dofusdu.de/dofus3/v1/meta/en/almanax/bonuses").
 		RespondWith().
 		Body(`[
 		  {
