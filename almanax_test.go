@@ -16,6 +16,12 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+func TestFormatKamas(t *testing.T) {
+	assert.Equal(t, "1 000 K", formatKamas(1000))
+	assert.Equal(t, "1 000 000 K", formatKamas(1000000))
+	assert.Equal(t, "1 000 000 000 K", formatKamas(1000000000))
+}
+
 func TestHourCheck(t *testing.T) {
 	parsedTime, _ := time.Parse(time.RFC3339, "2021-01-01T00:02:35Z")
 	assert.False(t, isNewHour(parsedTime))

@@ -1,9 +1,20 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
+
+func TestReadEnvs(t *testing.T) {
+	err := os.Setenv("POSTGRES_URL", "-")
+	assert.NoError(t, err)
+	err = os.Setenv("API_PORT", "6969")
+	assert.NoError(t, err)
+	ReadEnvs()
+	assert.Equal(t, "6969", ApiPort)
+}
 
 func TestNewSet(t *testing.T) {
 	s := NewSet[string]()
