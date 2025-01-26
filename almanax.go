@@ -298,7 +298,12 @@ func handleCreateAlmanax(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 				}
-				requestedMentions[bonusId].Add(mention.DiscordId)
+				discordId, err := mention.DiscordId.Int64()
+				if err != nil {
+					http.Error(w, "Invalid discord id.", http.StatusBadRequest)
+					return
+				}
+				requestedMentions[bonusId].Add(uint64(discordId))
 			}
 		}
 	}
@@ -935,7 +940,11 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 				if mentions, ok := hookMentions[almBonusType.GetId()]; ok {
 					var mentionStrings []string
 					for _, mention := range mentions {
-						idStr := strconv.FormatUint(mention.DiscordId, 10)
+						discordId, err := mention.DiscordId.Int64()
+						if err != nil {
+							return nil, err
+						}
+						idStr := strconv.FormatInt(discordId, 10)
 						found := false
 						for _, alreadyInsertedMention := range mentionStrings {
 							if strings.Contains(alreadyInsertedMention, idStr) {
@@ -973,7 +982,11 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 
 					var mentionStrings []string
 					for _, mention := range mentions {
-						idStr := strconv.FormatUint(mention.DiscordId, 10)
+						discordId, err := mention.DiscordId.Int64()
+						if err != nil {
+							return nil, err
+						}
+						idStr := strconv.FormatInt(discordId, 10)
 						if mention.IsRole {
 							mentionStrings = append(mentionStrings, "<@&"+idStr+">")
 						} else {

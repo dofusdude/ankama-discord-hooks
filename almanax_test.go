@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -370,11 +371,11 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Mentions() {
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
 					MentionDTO{
-						DiscordId: 123,
+						DiscordId: json.Number("123"),
 						IsRole:    false,
 					},
 					MentionDTO{
-						DiscordId: 124,
+						DiscordId: json.Number("124"),
 						IsRole:    true,
 					},
 				},
@@ -417,13 +418,13 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Mentions() {
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
 					MentionDTO{
-						DiscordId: 123,
+						DiscordId: json.Number("666555333222111444"),
 						IsRole:    false,
 					},
 				},
 				"rewardbonus": {
 					MentionDTO{
-						DiscordId: 123,
+						DiscordId: json.Number("123"),
 						IsRole:    true,
 					},
 				},
@@ -433,7 +434,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Mentions() {
 		Expect(suite.T()).
 		Status(http.StatusCreated).
 		Assert(jsonpath.Chain().
-			Equal("$.mentions.loot[0].discord_id", float64(123)).
+			Equal("$.mentions.loot[0].discord_id", float64(666555333222111444)).
 			Equal("$.mentions.loot[0].is_role", false).
 			Equal("$.mentions.rewardbonus[0].discord_id", float64(123)).
 			Equal("$.mentions.rewardbonus[0].is_role", true).
@@ -454,14 +455,14 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Mentions() {
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
 					MentionDTO{
-						DiscordId:      123,
+						DiscordId:      json.Number("123"),
 						IsRole:         false,
 						PingDaysBefore: &pingDaysAhead,
 					},
 				},
 				"rewardbonus": {
 					MentionDTO{
-						DiscordId: 123,
+						DiscordId: json.Number("123"),
 						IsRole:    true,
 					},
 				},
@@ -494,11 +495,11 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Delete() {
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
 					MentionDTO{
-						DiscordId: 123,
+						DiscordId: json.Number("123"),
 						IsRole:    false,
 					},
 					MentionDTO{
-						DiscordId: 124,
+						DiscordId: json.Number("124"),
 						IsRole:    true,
 					},
 				},
@@ -649,11 +650,11 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_Intervals_And_Update() {
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
 					MentionDTO{
-						DiscordId: 123,
+						DiscordId: json.Number("123"),
 						IsRole:    false,
 					},
 					MentionDTO{
-						DiscordId: 124,
+						DiscordId: json.Number("124"),
 						IsRole:    true,
 					},
 				},
@@ -765,11 +766,11 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_And_Update() {
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
 					MentionDTO{
-						DiscordId: 123,
+						DiscordId: json.Number("123"),
 						IsRole:    false,
 					},
 					MentionDTO{
-						DiscordId: 124,
+						DiscordId: json.Number("124"),
 						IsRole:    true,
 					},
 				},
@@ -956,7 +957,7 @@ func (suite *AlmanaxTestSuite) Test_CRUD_Create_And_Update() {
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
 					{
-						DiscordId: 42,
+						DiscordId: json.Number("42"),
 						IsRole:    false,
 					},
 				},
@@ -1002,11 +1003,11 @@ func (suite *AlmanaxTestSuite) Test_GetFeeds() {
 			Mentions: &map[string][]MentionDTO{
 				"loot": {
 					MentionDTO{
-						DiscordId: 123,
+						DiscordId: json.Number("123"),
 						IsRole:    false,
 					},
 					MentionDTO{
-						DiscordId: 124,
+						DiscordId: json.Number("124"),
 						IsRole:    true,
 					},
 				},

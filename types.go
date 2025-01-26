@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/dofusdude/dodugo"
@@ -519,9 +520,9 @@ type SocialHookCreate struct {
 }
 
 type MentionDTO struct {
-	DiscordId      uint64 `json:"discord_id"`
-	IsRole         bool   `json:"is_role"`
-	PingDaysBefore *int   `json:"ping_days_before"`
+	DiscordId      json.Number `json:"discord_id"`
+	IsRole         bool        `json:"is_role"`
+	PingDaysBefore *int        `json:"ping_days_before"`
 }
 
 type AlmanaxHookPut struct {
