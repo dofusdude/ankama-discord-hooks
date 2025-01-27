@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -266,7 +265,7 @@ func handleCreateAlmanax(w http.ResponseWriter, r *http.Request) {
 	}
 
 	requestedBonuses := map[string]*Set[string]{}
-	requestedMentions := map[string]*Set[uint64]{}
+	requestedMentions := map[string]*Set[json.Number]{}
 
 	if createWebhook.Mentions != nil {
 
@@ -280,7 +279,7 @@ func handleCreateAlmanax(w http.ResponseWriter, r *http.Request) {
 				requestedBonuses[bonusId] = NewSet[string]()
 			}
 			if _, ok := requestedMentions[bonusId]; !ok {
-				requestedMentions[bonusId] = NewSet[uint64]()
+				requestedMentions[bonusId] = NewSet[json.Number]()
 			}
 			if !possibleBonuses.Has(bonusId) {
 				http.Error(w, "Unknown almanax bonus id: "+bonusId+".", http.StatusBadRequest)
@@ -298,12 +297,7 @@ func handleCreateAlmanax(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 				}
-				discordId, err := mention.DiscordId.Int64()
-				if err != nil {
-					http.Error(w, "Invalid discord id.", http.StatusBadRequest)
-					return
-				}
-				requestedMentions[bonusId].Add(uint64(discordId))
+				requestedMentions[bonusId].Add(mention.DiscordId)
 			}
 		}
 	}
@@ -940,11 +934,7 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 				if mentions, ok := hookMentions[almBonusType.GetId()]; ok {
 					var mentionStrings []string
 					for _, mention := range mentions {
-						discordId, err := mention.DiscordId.Int64()
-						if err != nil {
-							return nil, err
-						}
-						idStr := strconv.FormatInt(discordId, 10)
+						idStr := mention.DiscordId.String()
 						found := false
 						for _, alreadyInsertedMention := range mentionStrings {
 							if strings.Contains(alreadyInsertedMention, idStr) {
@@ -982,11 +972,7 @@ func buildDiscordHookAlmanax(almanaxSend AlmanaxSend) ([]PreparedHook, error) {
 
 					var mentionStrings []string
 					for _, mention := range mentions {
-						discordId, err := mention.DiscordId.Int64()
-						if err != nil {
-							return nil, err
-						}
-						idStr := strconv.FormatInt(discordId, 10)
+						idStr := mention.DiscordId.String()
 						if mention.IsRole {
 							mentionStrings = append(mentionStrings, "<@&"+idStr+">")
 						} else {

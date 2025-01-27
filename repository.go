@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -676,10 +678,12 @@ func (r *Repository) GetAlmanaxDiscordMentions(id uuid.UUID) (map[string][]Menti
 		var bonusId string
 
 		var mention MentionDTO
-		err = rows.Scan(&bonusId, &mention.DiscordId, &mention.IsRole, &mention.PingDaysBefore)
+		var discordId uint64
+		err = rows.Scan(&bonusId, discordId, &mention.IsRole, &mention.PingDaysBefore)
 		if err != nil {
 			return res, err
 		}
+		mention.DiscordId = json.Number(fmt.Sprint(discordId))
 
 		res[bonusId] = append(res[bonusId], mention)
 	}
@@ -723,12 +727,12 @@ func (r *Repository) CreateAlmanaxHook(createHook CreateAlmanaxHook) (uuid.UUID,
 	if createHook.Mentions != nil {
 		for bonus, mentions := range *createHook.Mentions {
 			for _, mention := range mentions {
-				var discordId uuid.UUID
-				err = r.conn.QueryRow(r.ctx, "insert into discord_mentions (discord_id, is_role) values ($1, $2) returning id", mention.DiscordId, mention.IsRole).Scan(&discordId)
+				var discordMentionId uuid.UUID
+				err = r.conn.QueryRow(r.ctx, "insert into discord_mentions (discord_id, is_role) values ($1, $2) returning id", mention.DiscordId.String(), mention.IsRole).Scan(&discordMentionId)
 				if err != nil {
 					return id, err
 				}
-				_, err = r.conn.Exec(r.ctx, "insert into almanax_mentions (almanax_webhook_id, almanax_bonus_id, discord_mention_id, ping_days_before) values ($1, $2, $3, $4)", id, bonus, discordId, mention.PingDaysBefore)
+				_, err = r.conn.Exec(r.ctx, "insert into almanax_mentions (almanax_webhook_id, almanax_bonus_id, discord_mention_id, ping_days_before) values ($1, $2, $3, $4)", id, bonus, discordMentionId, mention.PingDaysBefore)
 				if err != nil {
 					return id, err
 				}
