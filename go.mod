@@ -6,7 +6,7 @@ toolchain go1.23.0
 
 require (
 	github.com/JohannesKaufmann/html-to-markdown v1.6.0
-	github.com/dofusdude/dodugo v1.0.0-rc.9
+	github.com/dofusdude/dodugo v1.0.0
 	github.com/go-chi/chi/v5 v5.2.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.2
