@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -678,12 +676,10 @@ func (r *Repository) GetAlmanaxDiscordMentions(id uuid.UUID) (map[string][]Menti
 		var bonusId string
 
 		var mention MentionDTO
-		var discordId uint64
-		err = rows.Scan(&bonusId, discordId, &mention.IsRole, &mention.PingDaysBefore)
+		err = rows.Scan(&bonusId, &mention.DiscordId, &mention.IsRole, &mention.PingDaysBefore)
 		if err != nil {
 			return res, err
 		}
-		mention.DiscordId = json.Number(fmt.Sprint(discordId))
 
 		res[bonusId] = append(res[bonusId], mention)
 	}
