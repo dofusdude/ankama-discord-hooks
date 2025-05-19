@@ -1,15 +1,13 @@
 module github.com/dofusdude/ankama-discord-hooks
 
-go 1.23
-
-toolchain go1.23.0
+go 1.23.0
 
 require (
 	github.com/JohannesKaufmann/html-to-markdown v1.6.0
 	github.com/dofusdude/dodugo v1.0.0
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.7.2
+	github.com/jackc/pgx/v5 v5.7.5
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/mitchellh/hashstructure/v2 v2.0.2
@@ -19,7 +17,7 @@ require (
 	github.com/steinfletcher/apitest v1.5.17
 	github.com/steinfletcher/apitest-jsonpath v1.7.2
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/text v0.22.0
+	golang.org/x/text v0.24.0
 )
 
 require (
@@ -45,10 +43,10 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
+	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
 	google.golang.org/protobuf v1.36.4 // indirect
 	gopkg.in/validator.v2 v2.0.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
